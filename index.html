@@ -405,9 +405,10 @@
                 </div>
             </div>`;
 
-        const createNovelDetailPage=(n)=>{const sC=n.status==='Tamat'?'bg-green-100 text-green-800':'bg-yellow-100 text-yellow-800';const publishedChapters = (n.chapters || []).filter(c => c.status !== 'draft'); return `<div class="p-4 space-y-4"><div class="flex gap-4"><div class="detail-cover-wrapper flex-shrink-0"><img src="${n.coverUrl}" class="w-28 h-40 object-cover rounded-lg shadow-lg detail-cover"></div><div class="space-y-1.5"><h2 class="text-xl font-bold text-slate-800">${n.title}</h2><p class="text-sm font-medium text-pink-600 cursor-pointer hover:underline author-link" data-author="${n.authorPenName || n.author}">${n.authorPenName || n.author.split('@')[0]}</p><div class="flex flex-wrap gap-2 pt-1">${(n.tags || []).map(g=>`<span class="genre-tag text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded-full hover:bg-pink-200" data-genre="${g.name}">${g.name}</span>`).join('')}</div><span class="text-xs font-semibold px-2.5 py-1 rounded-full inline-block ${sC}">${n.status}</span></div></div><div class="flex gap-2"><button id="add-to-library-btn" data-novel-id="${n.id}" class="w-full bg-pink-500 text-white font-semibold py-2.5 px-4 rounded-lg shadow-md hover:bg-pink-600 inline-flex items-center justify-center gap-2"><i data-lucide="library" class="w-4 h-4"></i>Koleksi</button><button id="share-detail-btn" data-novel-id="${n.id}" class="w-full bg-sky-500 text-white font-semibold py-2.5 px-4 rounded-lg shadow-md hover:bg-sky-600 inline-flex items-center justify-center gap-2"><i data-lucide="share-2" class="w-4 h-4"></i>Salin Link</button></div><div><h3 class="font-bold text-slate-800 mb-1">Sinopsis</h3><p class="text-sm text-slate-600 leading-relaxed">${n.description}</p></div><div><h3 class="font-bold text-slate-800 mb-2">Daftar Bab</h3><div class="bg-white rounded-lg border overflow-hidden">${publishedChapters.length > 0 ? publishedChapters.map(c=>{const isUnlocked=c.monetization==='free'||unlockedChapterIds.includes(c.id); const icon=isUnlocked?`<i data-lucide="unlock" class="w-4 h-4 text-green-500"></i>`:`<i data-lucide="gem" class="w-4 h-4 text-yellow-500"></i>`; return `<a href="#" class="chapter-link flex justify-between items-center p-3 border-b hover:bg-slate-50 text-sm text-slate-700" data-novel-id="${n.id}" data-chapter-id="${c.id}"><span>${c.title}</span>${icon}</a>`}).join('') : `<p class="p-3 text-sm text-slate-400">Belum ada bab.</p>`}</div></div></div>`};
+        // --- START: MODIFIKASI FUNGSI createNovelDetailPage ---
+        const createNovelDetailPage=(n)=>{const sC=n.status==='Tamat'?'bg-green-100 text-green-800':'bg-yellow-100 text-yellow-800';const publishedChapters = (n.chapters || []).filter(c => c.status !== 'draft'); return `<div class="p-4 space-y-4"><div class="flex gap-4"><div class="detail-cover-wrapper flex-shrink-0"><img src="${n.coverUrl}" class="w-28 h-40 object-cover rounded-lg shadow-lg detail-cover"></div><div class="space-y-1.5"><h2 class="text-xl font-bold text-slate-800">${n.title}</h2><p class="text-sm font-medium text-pink-600 cursor-pointer hover:underline author-link" data-author="${n.authorPenName || n.author}">${n.authorPenName || n.author.split('@')[0]}</p><div class="flex flex-wrap gap-2 pt-1">${(n.tags || []).map(g=>`<span class="genre-tag text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded-full hover:bg-pink-200" data-genre="${g.name}">${g.name}</span>`).join('')}</div><span class="text-xs font-semibold px-2.5 py-1 rounded-full inline-block ${sC}">${n.status}</span></div></div><div class="flex gap-2"><button id="add-to-library-btn" data-novel-id="${n.id}" class="w-full bg-pink-500 text-white font-semibold py-2.5 px-4 rounded-lg shadow-md hover:bg-pink-600 inline-flex items-center justify-center gap-2"><i data-lucide="library" class="w-4 h-4"></i>Koleksi</button><button id="share-detail-btn" data-novel-id="${n.id}" class="w-full bg-sky-500 text-white font-semibold py-2.5 px-4 rounded-lg shadow-md hover:bg-sky-600 inline-flex items-center justify-center gap-2"><i data-lucide="share-2" class="w-4 h-4"></i>Salin Link</button></div><div><h3 class="font-bold text-slate-800 mb-1">Sinopsis</h3><p class="text-sm text-slate-600 leading-relaxed">${n.description}</p></div><div><h3 class="font-bold text-slate-800 mb-2">Daftar Bab</h3><div class="bg-white rounded-lg border overflow-hidden">${publishedChapters.length > 0 ? publishedChapters.map(c=>{const isAdSupported = n.monetizationModel === 'ads'; const isUnlocked=isAdSupported || c.monetization==='free'||unlockedChapterIds.includes(c.id); const icon=isUnlocked?`<i data-lucide="unlock" class="w-4 h-4 text-green-500"></i>`:`<i data-lucide="gem" class="w-4 h-4 text-yellow-500"></i>`; return `<a href="#" class="chapter-link flex justify-between items-center p-3 border-b hover:bg-slate-50 text-sm text-slate-700" data-novel-id="${n.id}" data-chapter-id="${c.id}"><span>${c.title}</span>${icon}</a>`}).join('') : `<p class="p-3 text-sm text-slate-400">Belum ada bab.</p>`}</div></div></div>`};
+        // --- AKHIR: MODIFIKASI FUNGSI ---
         
-        // --- START: MODIFIKASI FUNGSI createEditNovelPage ---
         const createEditNovelPage=(n)=>{
             return `
             <div class="mb-6">
@@ -437,9 +438,16 @@
             </div>
             `;
         };
-        // --- AKHIR: MODIFIKASI FUNGSI createEditNovelPage ---
-
-        const createEditChapterForm=(c={})=>{const isMonetized = c.monetization && c.monetization !== 'free'; $('#edit-chapter-form').innerHTML=`<div><div class="p-3 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg text-xs text-blue-800 mb-4"><b>Saran:</b> Sediakan setidaknya 5-10 bab gratis untuk menarik minat pembaca sebelum memonetisasi bab selanjutnya.</div><label class="text-sm font-medium text-slate-700">Judul Bab</label><input type="text" id="chapter-title" required class="mt-1 block w-full px-3 py-2 bg-white border rounded-md text-sm shadow-sm" value="${c.title||''}"></div><div><label class="text-sm font-medium text-slate-700">Konten Bab</label><textarea id="chapter-content" rows="15" class="mt-1 block w-full px-3 py-2 bg-white border rounded-md text-sm shadow-sm">${c.content || ''}</textarea><div id="word-count" class="text-xs text-right text-slate-500 mt-1">0/1000 kata minimum</div></div><div><label for="ai-percentage" class="text-sm font-medium text-slate-700 flex justify-between"><span>Analisis Konten (Manusia vs AI)</span><span id="ai-percentage-label">${c.ai_percent||10}% AI</span></label><input type="range" id="ai-percentage" min="0" max="100" value="${c.ai_percent||10}" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"></div><div><label class="text-sm font-medium text-slate-700">Monetisasi</label><label class="inline-flex items-center cursor-pointer mt-2"><input type="checkbox" id="monetize-toggle" class="sr-only peer" ${isMonetized?'checked':''}><div class="relative w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div><span class="ms-3 text-sm font-medium text-gray-900">Jadikan Bab Premium (10 Koin)</span></label></div><div class="mt-4 p-2 bg-red-50 text-xs text-red-700 rounded-md"><b>Info:</b> Penghapusan bab atau novel hanya dapat dilakukan oleh Admin.</div><div class="mt-6 flex gap-3"><button type="submit" data-action="draft" class="w-full bg-slate-200 text-slate-800 font-semibold py-2.5 px-4 rounded-lg hover:bg-slate-300">Simpan Draf</button><button type="submit" data-action="publish" class="w-full bg-pink-500 text-white font-semibold py-2.5 px-4 rounded-lg shadow-md hover:bg-pink-600">Publikasi</button></div>`;};
+        
+        const createEditChapterForm=(c={}, n={})=>{
+            // --- START: MODIFIKASI UNTUK MENYESUAIKAN DENGAN MONETISASI NOVEL ---
+            const isAdSupportedNovel = n.monetizationModel === 'ads';
+            const monetizationUI = isAdSupportedNovel
+                ? `<div class="p-3 bg-green-50 border-l-4 border-green-400 rounded-r-lg text-xs text-green-800">Novel ini gratis dan didukung oleh iklan. Semua bab akan dapat diakses secara gratis.</div>`
+                : `<div><label class="text-sm font-medium text-slate-700">Monetisasi</label><label class="inline-flex items-center cursor-pointer mt-2"><input type="checkbox" id="monetize-toggle" class="sr-only peer" ${c.monetization === 'paid' ?'checked':''}><div class="relative w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div><span class="ms-3 text-sm font-medium text-gray-900">Jadikan Bab Premium (10 Koin)</span></label></div>`;
+            // --- AKHIR: MODIFIKASI ---
+            
+            $('#edit-chapter-form').innerHTML=`<input type="hidden" id="chapter-form-novel-id" value="${n.id || ''}"><div><div class="p-3 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg text-xs text-blue-800 mb-4"><b>Saran:</b> Sediakan setidaknya 5-10 bab gratis untuk menarik minat pembaca sebelum memonetisasi bab selanjutnya.</div><label class="text-sm font-medium text-slate-700">Judul Bab</label><input type="text" id="chapter-title" required class="mt-1 block w-full px-3 py-2 bg-white border rounded-md text-sm shadow-sm" value="${c.title||''}"></div><div><label class="text-sm font-medium text-slate-700">Konten Bab</label><textarea id="chapter-content" rows="15" class="mt-1 block w-full px-3 py-2 bg-white border rounded-md text-sm shadow-sm">${c.content || ''}</textarea><div id="word-count" class="text-xs text-right text-slate-500 mt-1">0/1000 kata minimum</div></div><div><label for="ai-percentage" class="text-sm font-medium text-slate-700 flex justify-between"><span>Analisis Konten (Manusia vs AI)</span><span id="ai-percentage-label">${c.ai_percent||10}% AI</span></label><input type="range" id="ai-percentage" min="0" max="100" value="${c.ai_percent||10}" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"></div>${monetizationUI}<div class="mt-4 p-2 bg-red-50 text-xs text-red-700 rounded-md"><b>Info:</b> Penghapusan bab atau novel hanya dapat dilakukan oleh Admin.</div><div class="mt-6 flex gap-3"><button type="submit" data-action="draft" class="w-full bg-slate-200 text-slate-800 font-semibold py-2.5 px-4 rounded-lg hover:bg-slate-300">Simpan Draf</button><button type="submit" data-action="publish" class="w-full bg-pink-500 text-white font-semibold py-2.5 px-4 rounded-lg shadow-md hover:bg-pink-600">Publikasi</button></div>`;};
         
         const createUnlockModal=(c,n)=>{const silverBalance = currentUser.balance.silver[n.authorPenName] || 0; const goldBalance = currentUser.balance.gold || 0; const canUnlockSilver = silverBalance >= 10; const canUnlockGold = goldBalance >= 10; return `<button class="close-modal-btn absolute top-2 right-2 p-1 rounded-full hover:bg-slate-200"><i data-lucide="x" class="w-5 h-5 text-slate-500"></i></button><div class="text-center"><i data-lucide="lock" class="w-12 h-12 text-yellow-500 mx-auto"></i><h3 class="text-lg font-bold text-slate-800 mt-4">Buka Bab Premium</h3><p class="text-sm text-slate-500 mt-2">Anda perlu membuka bab ini untuk melanjutkan membaca.</p></div><div class="mt-6 space-y-2"><button data-coin-type="silver" data-can-unlock="${canUnlockSilver}" class="unlock-with-coin-btn w-full font-semibold py-2.5 px-4 rounded-lg inline-flex items-center justify-center gap-2 ${canUnlockSilver ? 'bg-slate-200 text-slate-800' : 'bg-slate-100 text-slate-400'}">${canUnlockSilver ? 'Buka dengan 10' : 'Koin Perak Habis'} <i data-lucide="coins" class="w-4 h-4 text-yellow-600"></i></button><button data-coin-type="gold" data-can-unlock="${canUnlockGold}" class="unlock-with-coin-btn w-full font-semibold py-2.5 px-4 rounded-lg inline-flex items-center justify-center gap-2 ${canUnlockGold ? 'bg-yellow-400 text-yellow-900' : 'bg-yellow-100 text-yellow-400'}">${canUnlockGold ? 'Buka dengan 10' : 'Koin Emas Habis'} <i data-lucide="gem" class="w-4 h-4"></i></button></div>`};
         const createCoinInfoModal = (authorPhone) => { return `<button class="close-modal-btn absolute top-2 right-2 p-1 rounded-full hover:bg-slate-200"><i data-lucide="x" class="w-5 h-5 text-slate-500"></i></button><div class="text-center"><i data-lucide="coins" class="w-12 h-12 text-sky-500 mx-auto"></i><h3 class="text-lg font-bold text-slate-800 mt-4">Beli Koin</h3><p class="text-sm text-slate-500 mt-2">Pilih jenis koin yang ingin Anda beli.</p></div><div class="mt-4 space-y-3 text-left"><div class="p-3 bg-gray-50 rounded-lg text-xs"><p class="font-semibold text-slate-700">Koin Perak (150 Koin = Rp 10.000)</p><p class="text-slate-500">Hanya bisa digunakan untuk novel dari penulis yang bersangkutan. Hubungi penulis untuk membeli.</p></div><div class="p-3 bg-yellow-50 rounded-lg text-xs"><p class="font-semibold text-yellow-800">Koin Emas (100 Koin = Rp 10.000)</p><p class="text-yellow-700">Bisa digunakan untuk semua novel premium di aplikasi ini.</p></div></div><div class="mt-6 space-y-2"><a href="https://wa.me/${authorPhone}?text=${encodeURIComponent(`Halo kak, saya ingin membeli Koin Perak.`)}" target="_blank" class="w-full block text-center bg-slate-200 text-slate-800 font-semibold py-2.5 px-4 rounded-lg">Beli Koin Perak</a><button id="buy-gold-coin-redirect" class="w-full bg-yellow-400 text-yellow-900 font-semibold py-2.5 px-4 rounded-lg">Beli Koin Emas</button></div>`};
@@ -490,12 +498,6 @@
             }
         }
 
-        // --- START: FUNGSI BARU UNTUK QUERY PAGINATION ---
-
-        /**
-         * Mengambil total jumlah novel dari dokumen metadata.
-         * Dijalankan sekali saat aplikasi dimuat.
-         */
         async function fetchNovelCount() {
             try {
                 const metadataRef = doc(db, "metadata", "novels");
@@ -511,29 +513,23 @@
             }
         }
 
-        /**
-         * Mengambil satu halaman data novel dari Firestore.
-         * @param {number} pageNumber - Nomor halaman yang ingin diambil.
-         */
         async function fetchJelajahPage(pageNumber) {
             const grid = $('#jelajah-grid');
             grid.innerHTML = '<p class="col-span-3 text-center text-slate-500 mt-8 animate-pulse">Memuat novel...</p>';
             
             try {
                 const novelsRef = collection(db, "novels");
-                const cursor = pageHistory[pageNumber - 1]; // Ambil cursor dari halaman sebelumnya
+                const cursor = pageHistory[pageNumber - 1]; 
                 
                 let q;
                 if (cursor) {
                     q = query(novelsRef, orderBy("createdAt", "desc"), startAfter(cursor), limit(jelajahItemsPerPage));
                 } else {
-                    // Query untuk halaman pertama
                     q = query(novelsRef, orderBy("createdAt", "desc"), limit(jelajahItemsPerPage));
                 }
 
                 const documentSnapshots = await getDocs(q);
                 
-                // Simpan cursor untuk halaman berikutnya
                 if (!documentSnapshots.empty) {
                      const lastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
                      pageHistory[pageNumber] = lastVisible;
@@ -549,10 +545,6 @@
             }
         }
 
-        /**
-         * Merender UI untuk halaman Jelajah, termasuk grid novel dan kontrol paginasi.
-         * @param {Array} novels - Array novel yang akan ditampilkan.
-         */
         function renderJelajahUI(novels) {
             const grid = $('#jelajah-grid');
             const paginationControls = $('#pagination-controls');
@@ -570,7 +562,6 @@
 
             lucide.createIcons();
         }
-        // --- AKHIR: FUNGSI BARU UNTUK QUERY PAGINATION ---
 
         function loadContent() {
             const mainContainer = $('#page-beranda .p-4');
@@ -664,12 +655,63 @@
         function checkAndResetEarnings(){if(!currentUser) return; const today=new Date();if(today.getDate()===2&&today.getDate()!==currentUser.earnings.lastReset){currentUser.earnings.currentMonth=0;currentUser.earnings.lastReset=2;showToast("Penghasilan bulanan telah direset.")}}
         
         function updateDynamicUI(pId='beranda',ctx=null){$$('.page').forEach(p=>p.classList.add('hidden'));const p=$(`#page-${pId}`); if(!p) { console.error(`Halaman tidak ditemukan: ${pId}`); return; } p.classList.remove('hidden');p.scrollTop=0;const pT={'beranda':'JoyiNovel','jelajah':'Jelajahi','pustaka':'Pustaka Saya','profil':'Profil Saya','dashboard-penulis':'Dasbor Penulis','tambah-novel':'Tambah Novel','detail-novel':'Detail Novel','edit-novel':'Edit Novel','edit-bab':'Edit Bab','beli-koin':'Beli Koin','baca-bab':'Baca Bab', 'notifikasi': 'Notifikasi', 'saldo': 'Saldo Koin', 'beri-koin-perak': 'Beri Koin Perak'};let hT=pT[pId]||'JoyiNovel'; if (pId==='jelajah') { pageHistory = [null]; currentPage = 1; fetchJelajahPage(1); }let sB=Object.keys(pT).slice(4).includes(pId);if(pId==='beranda'){createHomePageHeader(allNotifications)}else{$('#main-header').innerHTML=`${sB&&pId!=='baca-bab'?`<button id="back-btn" class="text-slate-600"><i data-lucide="arrow-left"></i></button>`:`<div></div>`}<h1 class="text-xl font-bold">${hT}</h1><div></div>`}if(pId==='baca-bab'){ $('#main-header').classList.add('hidden'); }else{$('#main-header').classList.remove('hidden');} $('#bottom-nav').style.display = (sB || pId === 'baca-bab') ? 'none' : 'block'; if(sB&&pId!=='baca-bab')$('#back-btn').addEventListener('click',()=>window.history.back());if(pId==='detail-novel'&&ctx?.novelId){const n=allNovels.find(n=>n.id==ctx.novelId);if(n)$('#novel-detail-content').innerHTML=createNovelDetailPage(n)}if(pId==='dashboard-penulis'){if(currentUser?.role==='penulis')$('#dashboard-earnings-view').innerHTML = createWriterDashboard(currentUser.earnings); renderMyNovels()}if(pId==='edit-novel'&&ctx?.novelId){const novelId = ctx.novelId; const n=allNovels.find(novel=>novel.id==novelId);if(n){$('#edit-novel-content').innerHTML=createEditNovelPage(n);$('#add-chapter-btn').dataset.novelId=novelId;
-        // --- START: MODIFIKASI UNTUK MENGISI FORM EDIT NOVEL ---
         $('#edit-novel-title').value = n.title;
         $('#edit-novel-synopsis').value = n.description;
         $('#edit-novel-tags').value = (n.tags || []).map(tag => tag.name).join(', ');
+        }else{$('#edit-novel-content').innerHTML = `<p class="p-4 text-center text-red-500">Gagal memuat data novel. Silakan coba kembali.</p>`; console.error(`Novel with ID ${novelId} not found.`);}}
+        
+        // --- START: MODIFIKASI UNTUK MENANGANI HALAMAN BACA BAB ---
+        if(pId==='edit-bab'){const n=allNovels.find(n=>n.id==ctx.novelId);const c=n?.chapters?.find(c=>c.id==ctx.chapterId);createEditChapterForm(c, n)}
+        if(pId==='baca-bab'&&ctx?.novelId&&ctx?.chapterId){
+            const n=allNovels.find(n=>n.id==ctx.novelId);
+            const c=n.chapters.find(c=>c.id==ctx.chapterId);
+            const contentWrapper = $('#reader-content-wrapper');
+            $('#reader-toolbar').innerHTML=createReaderToolbar(n,c);
+            
+            // Logic to display content with or without ads
+            if (n.monetizationModel === 'ads' && n.adScript) {
+                const paragraphs = c.content.split(/\n+/).filter(p => p.trim() !== '');
+                let finalContentHTML = '';
+                const adInsertionInterval = 3; // Show ad every 3 paragraphs
+
+                paragraphs.forEach((p, index) => {
+                    finalContentHTML += `<p>${p}</p>`;
+                    if ((index + 1) % adInsertionInterval === 0 && (index + 1) < paragraphs.length) {
+                        finalContentHTML += `<div class="my-6 p-2 flex justify-center items-center text-sm text-gray-400 min-h-[100px] ad-placeholder"></div>`;
+                    }
+                });
+                contentWrapper.innerHTML = finalContentHTML;
+
+                // Inject the ad script into placeholders
+                contentWrapper.querySelectorAll('.ad-placeholder').forEach(placeholder => {
+                    // This method helps execute scripts from strings
+                    const adContainer = document.createElement('div');
+                    adContainer.innerHTML = n.adScript;
+                    Array.from(adContainer.getElementsByTagName('script')).forEach(oldScript => {
+                        const newScript = document.createElement('script');
+                        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                        placeholder.innerHTML = ''; // Clear placeholder text
+                        placeholder.appendChild(newScript);
+                    });
+                });
+            } else {
+                // Original logic for paid/free chapters
+                contentWrapper.innerHTML=`<p>${c.content.replace(/\n/g,'</p><p>')}</p>`;
+            }
+
+            renderComments(c.comments);
+            applyReaderSettings();
+        }
         // --- AKHIR: MODIFIKASI ---
-        }else{$('#edit-novel-content').innerHTML = `<p class="p-4 text-center text-red-500">Gagal memuat data novel. Silakan coba kembali.</p>`; console.error(`Novel with ID ${novelId} not found.`);}}if(pId==='edit-bab'){const n=allNovels.find(n=>n.id==ctx.novelId);const c=n?.chapters?.find(c=>c.id==ctx.chapterId);createEditChapterForm(c)}if(pId==='baca-bab'&&ctx?.novelId&&ctx?.chapterId){const n=allNovels.find(n=>n.id==ctx.novelId);const c=n.chapters.find(c=>c.id==ctx.chapterId);$('#reader-toolbar').innerHTML=createReaderToolbar(n,c);$('#reader-content-wrapper').innerHTML=`<p>${c.content.replace(/\n/g,'</p><p>')}</p>`;renderComments(c.comments);applyReaderSettings()}if(pId==='notifikasi'){$('#notification-list').innerHTML = allNotifications.length > 0 ? allNotifications.map(createNotificationCard).join('') : '<p class="text-center text-slate-500 mt-8">Tidak ada notifikasi.</p>'}if(pId==='saldo'){$('#saldo-content').innerHTML = createSaldoPage(currentUser.balance)}if(pId==='beri-koin-perak'){createGiveSilverCoinForm()}if(pId==='beli-koin'){createBeliKoinPage()}if(pId==='tambah-novel'){$('#add-novel-form').innerHTML=`<div><label class="text-sm">Judul Novel</label><input type="text" id="novel-title" required class="mt-1 w-full border rounded-md text-sm p-2"></div><div><label class="text-sm">Nomor WhatsApp</label><input type="tel" id="author-phone" required placeholder="628..." class="mt-1 w-full border rounded-md text-sm p-2"></div><div><label class="text-sm">Genre (pisahkan koma)</label><input type="text" id="novel-tags" required class="mt-1 w-full border rounded-md text-sm p-2"></div><div><label class="text-sm">URL Cover (Opsional)</label><input type="url" id="novel-cover-url" class="mt-1 w-full border rounded-md text-sm p-2"><p class="text-xs text-slate-500 mt-1">Jika kosong, cover akan dibuat otomatis. Anda bisa mengirim gambar ke admin nanti.</p></div><div><label class="text-sm">Sinopsis</label><textarea id="novel-synopsis" rows="6" required class="mt-1 w-full border rounded-md text-sm p-2"></textarea></div><div><label class="text-sm">Status</label><div class="mt-2 flex gap-4"><label><input type="radio" name="novel-status" value="Belum Tamat" checked><span class="ml-2 text-sm">Belum Tamat</span></label><label><input type="radio" name="novel-status" value="Tamat"><span class="ml-2 text-sm">Tamat</span></label></div></div><button type="submit" class="w-full bg-pink-500 text-white font-semibold py-2.5 rounded-lg">Simpan</button>`}if(currentUser) updateProfileView();}
+        
+        if(pId==='notifikasi'){$('#notification-list').innerHTML = allNotifications.length > 0 ? allNotifications.map(createNotificationCard).join('') : '<p class="text-center text-slate-500 mt-8">Tidak ada notifikasi.</p>'}if(pId==='saldo'){$('#saldo-content').innerHTML = createSaldoPage(currentUser.balance)}if(pId==='beri-koin-perak'){createGiveSilverCoinForm()}if(pId==='beli-koin'){createBeliKoinPage()}
+        
+        // --- START: MODIFIKASI FORM TAMBAH NOVEL DENGAN OPSI MONETISASI ---
+        if(pId==='tambah-novel'){$('#add-novel-form').innerHTML=`<div><label class="text-sm">Judul Novel</label><input type="text" id="novel-title" required class="mt-1 w-full border rounded-md text-sm p-2"></div><div><label class="text-sm">Nomor WhatsApp</label><input type="tel" id="author-phone" required placeholder="628..." class="mt-1 w-full border rounded-md text-sm p-2"></div><div><label class="text-sm">Genre (pisahkan koma)</label><input type="text" id="novel-tags" required class="mt-1 w-full border rounded-md text-sm p-2"></div><div><label class="text-sm">URL Cover (Opsional)</label><input type="url" id="novel-cover-url" class="mt-1 w-full border rounded-md text-sm p-2"><p class="text-xs text-slate-500 mt-1">Jika kosong, cover akan dibuat otomatis. Anda bisa mengirim gambar ke admin nanti.</p></div><div><label class="text-sm">Sinopsis</label><textarea id="novel-synopsis" rows="6" required class="mt-1 w-full border rounded-md text-sm p-2"></textarea></div><div><label class="text-sm">Status</label><div class="mt-2 flex gap-4"><label><input type="radio" name="novel-status" value="Belum Tamat" checked><span class="ml-2 text-sm">Belum Tamat</span></label><label><input type="radio" name="novel-status" value="Tamat"><span class="ml-2 text-sm">Tamat</span></label></div></div><div class="p-3 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg"><h4 class="font-bold text-sm text-blue-900 mb-2">Pilih Model Monetisasi</h4><div class="space-y-2"><label class="flex items-center"><input type="radio" name="monetization-model" value="paid" checked><span class="ml-2 text-sm text-slate-700">Bab Berbayar (Premium)</span></label><label class="flex items-center"><input type="radio" name="monetization-model" value="ads"><span class="ml-2 text-sm text-slate-700">Gratis (Didukung Iklan)</span></label></div></div><div id="ad-script-container" class="hidden"><label class="text-sm">Kode Iklan Pihak Ketiga</label><textarea id="novel-ad-script" rows="4" placeholder="Tempel kode iklan Anda di sini (misal: dari Google AdSense)" class="mt-1 w-full border rounded-md text-sm p-2"></textarea><p class="text-xs text-slate-500 mt-1">Iklan akan ditampilkan di antara paragraf dalam bab.</p></div><button type="submit" class="w-full bg-pink-500 text-white font-semibold py-2.5 rounded-lg mt-4">Simpan Novel</button>`}
+        // --- AKHIR: MODIFIKASI ---
+        
+        if(currentUser) updateProfileView();}
 
         function setupEventListeners(){
             let cNId,cCId;
@@ -686,7 +728,6 @@
             $('#saldo-koin-button').addEventListener('click', (e) => {e.preventDefault(); updateDynamicUI('saldo');});
             $('#main-header').addEventListener('click',e=>{const sB=e.target.closest('#search-btn');if(sB)updateDynamicUI('jelajah'); const nB=e.target.closest('#notification-btn'); if(nB)updateDynamicUI('notifikasi')});
             
-            // --- MODIFIKASI: Event listener untuk query pagination ---
             $('#pagination-controls').addEventListener('click', e => {
                 const button = e.target.closest('button');
                 if (!button) return;
@@ -881,11 +922,15 @@
                     }
                 }
 
-                const eCB=e.target.closest('.edit-chapter-btn');if(eCB){cCId=parseInt(eCB.dataset.chapterId);history.pushState({page:'edit-bab',novelId:cNId,chapterId:cCId},'');updateDynamicUI('edit-bab',{novelId:cNId,chapterId:cCId})}
+                const eCB=e.target.closest('.edit-chapter-btn');if(eCB){cCId=eCB.dataset.chapterId;history.pushState({page:'edit-bab',novelId:cNId,chapterId:cCId},'');updateDynamicUI('edit-bab',{novelId:cNId,chapterId:cCId})}
                 const gSCB = e.target.closest('#give-silver-coin-btn'); if(gSCB){updateDynamicUI('beri-koin-perak')} 
                 const bCL=e.target.closest('.buy-coin-link');if(bCL){const p=bCL.dataset.package;const m=encodeURIComponent(`Halo Admin, saya ${currentUser.email}, ingin membeli paket ${p}.`);window.open(`https://wa.me/6287745646067?text=${m}`,'_blank')}
                 const aLi=e.target.closest('.author-link');if(aLi){const a=aLi.dataset.author;history.pushState({page:'jelajah',author:a},'');updateDynamicUI('jelajah',{author:a})}
-                const cL=e.target.closest('.chapter-link');if(cL){e.preventDefault();const nId=cL.dataset.novelId;const cId=Number(cL.dataset.chapterId);cNId=nId; cCId=cId; const n=allNovels.find(n=>n.id==nId);const c=n.chapters.find(c=>c.id==cId);if(c.monetization==='free'||unlockedChapterIds.includes(cId)){history.pushState({page:'baca-bab',novelId:nId,chapterId:cId},'');updateDynamicUI('baca-bab',{novelId:nId,chapterId:cId})}else{$('#unlock-chapter-modal-content').innerHTML=createUnlockModal(c,n);$('#unlock-chapter-modal').classList.remove('hidden');lucide.createIcons()}}
+                
+                // --- START: MODIFIKASI EVENT KLIK BAB ---
+                const cL=e.target.closest('.chapter-link');if(cL){e.preventDefault();const nId=cL.dataset.novelId;const cId=cL.dataset.chapterId;cNId=nId; cCId=cId; const n=allNovels.find(n=>n.id==nId);const c=n.chapters.find(c=>c.id==cId); const isAdSupported = n.monetizationModel === 'ads'; if(isAdSupported || c.monetization==='free'||unlockedChapterIds.includes(cId)){history.pushState({page:'baca-bab',novelId:nId,chapterId:cId},'');updateDynamicUI('baca-bab',{novelId:nId,chapterId:cId})}else{$('#unlock-chapter-modal-content').innerHTML=createUnlockModal(c,n);$('#unlock-chapter-modal').classList.remove('hidden');lucide.createIcons()}}
+                // --- AKHIR: MODIFIKASI ---
+
                 const uWC=e.target.closest('.unlock-with-coin-btn');if(uWC){const canUnlock=uWC.dataset.canUnlock==='true';const coinType=uWC.dataset.coinType;const novel=allNovels.find(n=>n.id==cNId);if(!canUnlock){$('#unlock-chapter-modal').classList.add('hidden');if(coinType==='gold'){showToast('Koin Emas tidak cukup. Silakan top up.');updateDynamicUI('beli-koin')}else{$('#coin-info-modal-content').innerHTML = createCoinInfoModal(novel.authorPhone); $('#coin-info-modal').classList.remove('hidden'); lucide.createIcons();}}else{const chapter=novel.chapters.find(c=>c.id==cCId); if(coinType==='gold'){currentUser.balance.gold-=10}else{currentUser.balance.silver[novel.authorPenName] = (currentUser.balance.silver[novel.authorPenName] || 0) - 10;} unlockedChapterIds.push(chapter.id); try { const userRef = doc(db, "users", currentUser.uid); await updateDoc(userRef, { balance: currentUser.balance, unlockedChapters: unlockedChapterIds }); $('#unlock-chapter-modal').classList.add('hidden'); showToast(`Bab "${chapter.title}" berhasil dibuka!`); history.pushState({page:'baca-bab',novelId:cNId,chapterId:cCId},''); updateDynamicUI('baca-bab',{novelId:cNId,chapterId:cCId}); } catch(err) { console.error(err); showToast('Gagal membuka bab.'); if(coinType==='gold'){currentUser.balance.gold+=10}else{currentUser.balance.silver[novel.authorPenName]+=10;} unlockedChapterIds.pop(); } }}
                 const bgcr = e.target.closest('#buy-gold-coin-redirect'); if(bgcr){$('#coin-info-modal').classList.add('hidden');history.pushState({page:'beli-koin'},'', '#beli-koin');updateDynamicUI('beli-koin');} 
                 const wD=e.target.closest('#withdraw-btn');if(wD){const m=encodeURIComponent(`Halo Admin, saya ${currentUser.email}, ingin melakukan penarikan dana.`);window.open(`https://wa.me/6287745646067?text=${m}`,'_blank')} 
@@ -896,7 +941,7 @@
                 const tL=e.target.closest('#theme-light');if(tL){readerSettings.theme='light';applyReaderSettings()}
                 const tS=e.target.closest('#theme-sepia');if(tS){readerSettings.theme='sepia';applyReaderSettings()}
                 const tD=e.target.closest('#theme-dark');if(tD){readerSettings.theme='dark';applyReaderSettings()} 
-                const tsb = e.target.closest('.topup-silver-btn'); if(tsb){const authorName = tsb.dataset.authorName; const author = dummyAuthors.find(a => a.name === authorName); if(author?.phone){const msg = encodeURIComponent(`Halo kak ${authorName}, saya ingin top up Koin Perak.`); window.open(`https://wa.me/${author.phone}?text=${msg}`,'_blank');}} 
+                const tsb = e.target.closest('.topup-silver-btn'); if(tsb){const authorName = tsb.dataset.authorName; const author = dummyAuthors.find(a => a.name === authorName); if(author?.phone){const msg = encodeURIComponent(`Halo kak ${authorName}, saya ingin top up Koin Perak.`); window.open(`https.wa.me/${author.phone}?text=${msg}`,'_blank');}} 
                 const tgb = e.target.closest('#topup-gold-btn'); if(tgb){history.pushState({page:'beli-koin'},'', '#beli-koin'); updateDynamicUI('beli-koin');} 
                 const bsib = e.target.closest('#buy-silver-info-btn'); if(bsib){showToast('Pilih penulis dari halaman Saldo Koin.'); history.pushState({page:'saldo'},'', '#saldo'); updateDynamicUI('saldo');}
                 const openCommentBtn = e.target.closest('#open-comment-drawer-btn');
@@ -919,26 +964,36 @@
                 if(e.target.id==='ai-percentage'){$('#ai-percentage-label').textContent=`${e.target.value}% AI`}
                 if(e.target.id==='chapter-content'){const wC=e.target.value.trim().split(/\s+/).filter(Boolean).length;$('#word-count').textContent=`${wC}/1000 kata minimum`;$('#word-count').classList.toggle('text-green-600',wC>=1000)}
                 
-                // --- MODIFIKASI: Penanganan search dengan paginasi ---
                 if(e.target.id==='search-input'){
                     const q = e.target.value.toLowerCase().trim();
                     const paginationControls = $('#pagination-controls');
 
                     if (q.length > 0) {
-                        // Jika ada query pencarian, filter dari allNovels (metode lama)
-                        paginationControls.style.display = 'none'; // Sembunyikan paginasi server
+                        paginationControls.style.display = 'none';
                         const searchResults = allNovels.filter(n => 
                             n.title.toLowerCase().includes(q) || 
                             (n.authorPenName && n.authorPenName.toLowerCase().includes(q))
                         );
-                        renderJelajahUI(searchResults); // Tampilkan semua hasil pencarian
+                        renderJelajahUI(searchResults);
                     } else {
-                        // Jika input kosong, kembali ke paginasi server
                         paginationControls.style.display = 'flex';
                         fetchJelajahPage(1);
                     }
                 }
             });
+
+             // --- START: EVENT LISTENER BARU UNTUK RADIO BUTTON MONETISASI ---
+             $('body').addEventListener('change', e => {
+                if (e.target.name === 'monetization-model') {
+                    const adScriptContainer = $('#ad-script-container');
+                    if (e.target.value === 'ads') {
+                        adScriptContainer.classList.remove('hidden');
+                    } else {
+                        adScriptContainer.classList.add('hidden');
+                    }
+                }
+             });
+             // --- AKHIR: EVENT LISTENER BARU ---
 
              $('body').addEventListener('focusin', e => {
                  if (e.target.id === 'comment-input') {
@@ -951,7 +1006,6 @@
             $('body').addEventListener('submit', async e => {
                 e.preventDefault();
 
-                // --- START: MODIFIKASI UNTUK MENANGANI SUBMIT FORM EDIT NOVEL ---
                 if(e.target.id === 'edit-novel-form') {
                     const novelToUpdate = allNovels.find(n => n.id === cNId);
                     if (!novelToUpdate) {
@@ -969,21 +1023,20 @@
                         const novelRef = doc(db, "novels", cNId);
                         await updateDoc(novelRef, updatedData);
                         
-                        // Update data lokal
                         const novelIndex = allNovels.findIndex(n => n.id === cNId);
                         if (novelIndex > -1) {
                             allNovels[novelIndex] = { ...allNovels[novelIndex], ...updatedData };
                         }
 
                         showToast('Detail novel berhasil diperbarui!');
-                        window.history.back(); // Kembali ke halaman dasbor
+                        window.history.back();
                     } catch (error) {
                         console.error("Gagal memperbarui novel:", error);
                         showToast('Gagal memperbarui detail novel.');
                     }
                 }
-                // --- AKHIR: MODIFIKASI ---
 
+                // --- START: MODIFIKASI SUBMIT FORM TAMBAH NOVEL ---
                 if(e.target.id === 'add-novel-form'){ 
                     const f=e.target; 
                     
@@ -993,6 +1046,9 @@
                         coverUrl = `https://placehold.co/400x600/fecdd3/44403c?text=${encodeURIComponent(title.split(' ').slice(0, 2).join(' '))}`;
                     }
                     
+                    const monetizationModel = f['monetization-model'].value;
+                    const adScript = (monetizationModel === 'ads') ? f['novel-ad-script'].value.trim() : null;
+
                     const newNovel={ 
                         title: title, 
                         author:currentUser.email, 
@@ -1004,14 +1060,15 @@
                         status:f['novel-status'].value, 
                         chapters:[], 
                         createdAt: new Date(),
-                        clickCount: 0
+                        clickCount: 0,
+                        monetizationModel: monetizationModel, // 'paid' or 'ads'
+                        adScript: adScript // contains ad code or null
                     }; 
                     try { 
                         const docRef = await addDoc(collection(db, "novels"), newNovel); 
                         allNovels.push({ id: docRef.id, ...newNovel }); 
                         f.reset(); 
                         showToast('Novel berhasil disimpan!'); 
-                        // Perbarui counter di metadata
                         const metadataRef = doc(db, "metadata", "novels");
                         await updateDoc(metadataRef, { count: increment(1) });
                         totalNovels++;
@@ -1021,12 +1078,27 @@
                         showToast('Gagal menyimpan novel.'); 
                     } 
                 }
+                // --- AKHIR: MODIFIKASI ---
                 
+                // --- START: MODIFIKASI SUBMIT EDIT BAB (DENGAN PERBAIKAN) ---
                 if(e.target.id==='edit-chapter-form'){ 
                     const f=e.target; 
                     const action = e.submitter.dataset.action;
-                    const mToggle = f.querySelector('#monetize-toggle').checked; 
-                    const monetization = mToggle ? 'paid' : 'free';
+                    
+                    const novelId = $('#chapter-form-novel-id').value; // Mengambil ID novel dari form
+                    const novelToUpdate = allNovels.find(n => n.id == novelId); 
+
+                    if(!novelToUpdate) {
+                         showToast("Error: Novel tidak ditemukan."); // Pesan error jika novel tidak ketemu
+                         return;
+                    }
+
+                    let monetization = 'free'; // Default for ad-supported novels
+                    if (novelToUpdate.monetizationModel === 'paid') {
+                        const mToggle = f.querySelector('#monetize-toggle')?.checked;
+                        monetization = mToggle ? 'paid' : 'free';
+                    }
+                    
                     const content = $('#chapter-content').value;
                     const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
 
@@ -1034,12 +1106,9 @@
                         showToast(`Gagal. Bab berbayar harus minimal 1000 kata. (Saat ini: ${wordCount} kata)`);
                         return;
                     }
-
-                    const novelToUpdate = allNovels.find(n => n.id == cNId); 
-                    if(!novelToUpdate) return; 
                     
                     const chapterData = { 
-                        id: cCId || Date.now(), 
+                        id: cCId || Date.now().toString(), 
                         title: f['chapter-title'].value, 
                         monetization: monetization, 
                         ai_percent: $('#ai-percentage').value, 
@@ -1054,7 +1123,7 @@
                         updatedChapters = [...(novelToUpdate.chapters || []), chapterData]; 
                     } 
                     try { 
-                        const novelRef = doc(db, "novels", cNId); 
+                        const novelRef = doc(db, "novels", novelId); // Menggunakan novelId dari form
                         await updateDoc(novelRef, { chapters: updatedChapters }); 
                         novelToUpdate.chapters = updatedChapters; 
                         showToast(`Bab berhasil disimpan sebagai ${action === 'draft' ? 'draf' : 'publikasi'}!`); 
@@ -1064,6 +1133,7 @@
                         showToast("Gagal menyimpan bab."); 
                     } 
                 }
+                // --- AKHIR: MODIFIKASI ---
                 
                 if(e.target.id === 'give-silver-coin-form'){
                     const email = $('#reader-email').value;
@@ -1246,7 +1316,7 @@
                             getDoc(doc(db, "settings", "adSlots")),
                             getDoc(doc(db, "settings", "homepageLayout")),
                             getDocs(collection(db, "notifications")),
-                            fetchNovelCount() // <-- MODIFIKASI: Panggil fetchNovelCount
+                            fetchNovelCount()
                         ]);
 
                         allNovels = await Promise.all(novelsSnapshot.docs.map(async (d) => {
@@ -1327,4 +1397,3 @@
 
 </body>
 </html>
-
