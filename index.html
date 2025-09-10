@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-g">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <meta name="theme-color" content="#ec4899"/>
@@ -326,9 +326,9 @@
                         </div>
                         <div class="mb-4" id="pen-name-field-register">
                              <label class="block text-slate-700 text-sm font-bold mb-2" for="pen-name">
-                                Nama Pena
-                            </label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-slate-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-pink-300" id="auth-pen-name" type="text" placeholder="Nama Pena Anda" required>
+                                 Nama Pena
+                             </label>
+                             <input class="shadow appearance-none border rounded w-full py-2 px-3 text-slate-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-pink-300" id="auth-pen-name" type="text" placeholder="Nama Pena Anda" required>
                         </div>
                         <div class="mb-6">
                             <label class="block text-slate-700 text-sm font-bold mb-2" for="password">
@@ -342,8 +342,8 @@
                                 Masuk
                             </button>
                              <button id="show-register-form-btn" class="text-sm text-pink-600 hover:underline" type="button">
-                                Belum punya akun? Daftar
-                            </button>
+                                 Belum punya akun? Daftar
+                             </button>
                             <button id="register-btn" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline" type="button">
                                 Daftar Akun Baru
                             </button>
@@ -534,7 +534,7 @@
                      const lastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
                      pageHistory[pageNumber] = lastVisible;
                 }
-               
+                
                 const novelsForPage = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 currentPage = pageNumber;
                 renderJelajahUI(novelsForPage);
@@ -572,25 +572,29 @@
                 let contentContainerId = `${section.id}-container`;
                 let sectionHTML = `<div><h3 class="text-lg font-bold text-slate-800 mb-3">${section.title}</h3>`;
 
+                // --- START: PERBAIKAN SLIDER ---
+                // Menambahkan `flex-nowrap` agar item tidak turun ke bawah dan bisa di-scroll
                 if (section.id.startsWith('custom-')) {
-                    sectionHTML += `<div id="${contentContainerId}" class="flex gap-4 overflow-x-auto pb-3 -mx-4 px-4 hide-scrollbar"></div>`;
+                    sectionHTML += `<div id="${contentContainerId}" class="flex flex-nowrap gap-4 overflow-x-auto pb-3 -mx-4 px-4 hide-scrollbar"></div>`;
                 } else {
                      switch(section.id) {
                          case 'sponsored':
                              sectionHTML += `<div id="${contentContainerId}-wrapper" class="w-full overflow-x-auto pb-3 -mx-4 px-4 hide-scrollbar slider-container"><div id="${contentContainerId}" class="flex gap-4 slider-track"></div></div>`;
                              break;
                          case 'trending':
-                             sectionHTML += `<div id="${contentContainerId}" class="flex gap-4 overflow-x-auto pb-3 -mx-4 px-4 hide-scrollbar"></div>`;
+                             sectionHTML += `<div id="${contentContainerId}" class="flex flex-nowrap gap-4 overflow-x-auto pb-3 -mx-4 px-4 hide-scrollbar"></div>`;
                              break;
                          case 'authors':
                               contentContainerId = 'author-track';
-                             sectionHTML += `<div id="${contentContainerId}" class="flex gap-4 overflow-x-auto pb-3 -mx-4 px-4 hide-scrollbar"></div>`;
+                             sectionHTML += `<div id="${contentContainerId}" class="flex flex-nowrap gap-4 overflow-x-auto pb-3 -mx-4 px-4 hide-scrollbar"></div>`;
                              break;
                          case 'recommendations':
                               sectionHTML += `<div id="${contentContainerId}" class="space-y-4"></div>`;
                               break;
                      }
                 }
+                // --- AKHIR: PERBAIKAN SLIDER ---
+
                 sectionHTML += `</div>`;
                 mainContainer.innerHTML += sectionHTML;
 
@@ -603,7 +607,9 @@
                         novel.tags && novel.tags.some(tag => tag.name.toLowerCase() === tagToFilter)
                     );
                     if (filteredNovels.length > 0) {
-                        contentContainer.innerHTML = filteredNovels.map(createTrendingCard).join('');
+                        // --- START: BATASAN 7 NOVEL ---
+                        contentContainer.innerHTML = filteredNovels.slice(0, 7).map(createTrendingCard).join('');
+                        // --- AKHIR: BATASAN 7 NOVEL ---
                     } else {
                         contentContainer.innerHTML = `<p class="text-sm text-slate-400 text-center w-full">Tidak ada novel untuk kategori ini saat ini.</p>`;
                     }
@@ -624,7 +630,9 @@
                          $(`#${contentContainerId}-wrapper`).parentElement.style.display = 'none';
                     }
                 } else if (section.id === 'trending') {
-                    contentContainer.innerHTML = allNovels.filter(n => n.isTrending).map(createTrendingCard).join('');
+                    // --- START: BATASAN 7 NOVEL ---
+                    contentContainer.innerHTML = allNovels.filter(n => n.isTrending).slice(0, 7).map(createTrendingCard).join('');
+                    // --- AKHIR: BATASAN 7 NOVEL ---
                 } else if (section.id === 'authors') {
                     contentContainer.innerHTML = dummyAuthors.map(createAuthorProfileCard).join('');
                 } else if (section.id === 'recommendations') {
@@ -660,8 +668,9 @@
         $('#edit-novel-tags').value = (n.tags || []).map(tag => tag.name).join(', ');
         }else{$('#edit-novel-content').innerHTML = `<p class="p-4 text-center text-red-500">Gagal memuat data novel. Silakan coba kembali.</p>`; console.error(`Novel with ID ${novelId} not found.`);}}
         
-        // --- START: MODIFIKASI UNTUK MENANGANI HALAMAN BACA BAB ---
         if(pId==='edit-bab'){const n=allNovels.find(n=>n.id==ctx.novelId);const c=n?.chapters?.find(c=>c.id==ctx.chapterId);createEditChapterForm(c, n)}
+
+        // --- START: MODIFIKASI UNTUK MENANGANI HALAMAN BACA BAB DENGAN IKLAN ---
         if(pId==='baca-bab'&&ctx?.novelId&&ctx?.chapterId){
             const n=allNovels.find(n=>n.id==ctx.novelId);
             const c=n.chapters.find(c=>c.id==ctx.chapterId);
@@ -672,31 +681,35 @@
             if (n.monetizationModel === 'ads' && n.adScript) {
                 const paragraphs = c.content.split(/\n+/).filter(p => p.trim() !== '');
                 let finalContentHTML = '';
-                const adInsertionInterval = 3; // Show ad every 3 paragraphs
+                const adInsertionInterval = 3; // Menampilkan iklan setiap 3 paragraf
 
                 paragraphs.forEach((p, index) => {
                     finalContentHTML += `<p>${p}</p>`;
+                    // Sisipkan placeholder iklan jika interval terpenuhi dan bukan di akhir paragraf
                     if ((index + 1) % adInsertionInterval === 0 && (index + 1) < paragraphs.length) {
                         finalContentHTML += `<div class="my-6 p-2 flex justify-center items-center text-sm text-gray-400 min-h-[100px] ad-placeholder"></div>`;
                     }
                 });
                 contentWrapper.innerHTML = finalContentHTML;
 
-                // Inject the ad script into placeholders
+                // Menyuntikkan script iklan ke dalam placeholder agar bisa dieksekusi
                 contentWrapper.querySelectorAll('.ad-placeholder').forEach(placeholder => {
-                    // This method helps execute scripts from strings
+                    // Trik ini membantu browser mengeksekusi script dari string
                     const adContainer = document.createElement('div');
-                    adContainer.innerHTML = n.adScript;
+                    adContainer.innerHTML = n.adScript; // Masukkan script mentah ke div sementara
                     Array.from(adContainer.getElementsByTagName('script')).forEach(oldScript => {
                         const newScript = document.createElement('script');
+                        // Salin semua atribut dari script lama ke yang baru
                         Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                        // Salin konten script
                         newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                        placeholder.innerHTML = ''; // Clear placeholder text
+                        // Hapus placeholder dan ganti dengan script baru yang bisa dieksekusi
+                        placeholder.innerHTML = '';
                         placeholder.appendChild(newScript);
                     });
                 });
             } else {
-                // Original logic for paid/free chapters
+                // Logika original untuk bab gratis/berbayar tanpa iklan
                 contentWrapper.innerHTML=`<p>${c.content.replace(/\n/g,'</p><p>')}</p>`;
             }
 
@@ -927,9 +940,7 @@
                 const bCL=e.target.closest('.buy-coin-link');if(bCL){const p=bCL.dataset.package;const m=encodeURIComponent(`Halo Admin, saya ${currentUser.email}, ingin membeli paket ${p}.`);window.open(`https://wa.me/6287745646067?text=${m}`,'_blank')}
                 const aLi=e.target.closest('.author-link');if(aLi){const a=aLi.dataset.author;history.pushState({page:'jelajah',author:a},'');updateDynamicUI('jelajah',{author:a})}
                 
-                // --- START: MODIFIKASI EVENT KLIK BAB ---
                 const cL=e.target.closest('.chapter-link');if(cL){e.preventDefault();const nId=cL.dataset.novelId;const cId=cL.dataset.chapterId;cNId=nId; cCId=cId; const n=allNovels.find(n=>n.id==nId);const c=n.chapters.find(c=>c.id==cId); const isAdSupported = n.monetizationModel === 'ads'; if(isAdSupported || c.monetization==='free'||unlockedChapterIds.includes(cId)){history.pushState({page:'baca-bab',novelId:nId,chapterId:cId},'');updateDynamicUI('baca-bab',{novelId:nId,chapterId:cId})}else{$('#unlock-chapter-modal-content').innerHTML=createUnlockModal(c,n);$('#unlock-chapter-modal').classList.remove('hidden');lucide.createIcons()}}
-                // --- AKHIR: MODIFIKASI ---
 
                 const uWC=e.target.closest('.unlock-with-coin-btn');if(uWC){const canUnlock=uWC.dataset.canUnlock==='true';const coinType=uWC.dataset.coinType;const novel=allNovels.find(n=>n.id==cNId);if(!canUnlock){$('#unlock-chapter-modal').classList.add('hidden');if(coinType==='gold'){showToast('Koin Emas tidak cukup. Silakan top up.');updateDynamicUI('beli-koin')}else{$('#coin-info-modal-content').innerHTML = createCoinInfoModal(novel.authorPhone); $('#coin-info-modal').classList.remove('hidden'); lucide.createIcons();}}else{const chapter=novel.chapters.find(c=>c.id==cCId); if(coinType==='gold'){currentUser.balance.gold-=10}else{currentUser.balance.silver[novel.authorPenName] = (currentUser.balance.silver[novel.authorPenName] || 0) - 10;} unlockedChapterIds.push(chapter.id); try { const userRef = doc(db, "users", currentUser.uid); await updateDoc(userRef, { balance: currentUser.balance, unlockedChapters: unlockedChapterIds }); $('#unlock-chapter-modal').classList.add('hidden'); showToast(`Bab "${chapter.title}" berhasil dibuka!`); history.pushState({page:'baca-bab',novelId:cNId,chapterId:cCId},''); updateDynamicUI('baca-bab',{novelId:cNId,chapterId:cCId}); } catch(err) { console.error(err); showToast('Gagal membuka bab.'); if(coinType==='gold'){currentUser.balance.gold+=10}else{currentUser.balance.silver[novel.authorPenName]+=10;} unlockedChapterIds.pop(); } }}
                 const bgcr = e.target.closest('#buy-gold-coin-redirect'); if(bgcr){$('#coin-info-modal').classList.add('hidden');history.pushState({page:'beli-koin'},'', '#beli-koin');updateDynamicUI('beli-koin');} 
@@ -983,25 +994,25 @@
             });
 
              // --- START: EVENT LISTENER BARU UNTUK RADIO BUTTON MONETISASI ---
-             $('body').addEventListener('change', e => {
-                if (e.target.name === 'monetization-model') {
-                    const adScriptContainer = $('#ad-script-container');
-                    if (e.target.value === 'ads') {
-                        adScriptContainer.classList.remove('hidden');
-                    } else {
-                        adScriptContainer.classList.add('hidden');
-                    }
-                }
-             });
-             // --- AKHIR: EVENT LISTENER BARU ---
+              $('body').addEventListener('change', e => {
+                  if (e.target.name === 'monetization-model') {
+                      const adScriptContainer = $('#ad-script-container');
+                      if (e.target.value === 'ads') {
+                          adScriptContainer.classList.remove('hidden');
+                      } else {
+                          adScriptContainer.classList.add('hidden');
+                      }
+                  }
+              });
+              // --- AKHIR: EVENT LISTENER BARU ---
 
-             $('body').addEventListener('focusin', e => {
-                 if (e.target.id === 'comment-input') {
-                     setTimeout(() => {
-                         $('#comment-drawer-content').scrollIntoView({ behavior: 'smooth', block: 'end' });
-                     }, 300); 
-                 }
-             });
+              $('body').addEventListener('focusin', e => {
+                   if (e.target.id === 'comment-input') {
+                        setTimeout(() => {
+                             $('#comment-drawer-content').scrollIntoView({ behavior: 'smooth', block: 'end' });
+                        }, 300); 
+                   }
+              });
 
             $('body').addEventListener('submit', async e => {
                 e.preventDefault();
@@ -1246,23 +1257,23 @@
                                     return;
                                 }
                                 createUserWithEmailAndPassword(auth, email, password)
-                                    .then(userCredential => {
-                                        const user = userCredential.user;
-                                        const newUserProfile = {
-                                            email: user.email,
-                                            penName: penName,
-                                            role: 'pembaca',
-                                            balance: { gold: 0, silver: {} },
-                                            earnings: { currentMonth: 0, novels: {}, lastReset: 1 },
-                                            library: [],
-                                            unlockedChapters: [],
-                                            createdAt: new Date()
-                                        };
-                                        return setDoc(doc(db, "users", user.uid), newUserProfile);
-                                    })
-                                    .catch(error => {
-                                         errorDiv.textContent = getFriendlyAuthError(error.code);
-                                    });
+                                     .then(userCredential => {
+                                         const user = userCredential.user;
+                                         const newUserProfile = {
+                                             email: user.email,
+                                             penName: penName,
+                                             role: 'pembaca',
+                                             balance: { gold: 0, silver: {} },
+                                             earnings: { currentMonth: 0, novels: {}, lastReset: 1 },
+                                             library: [],
+                                             unlockedChapters: [],
+                                             createdAt: new Date()
+                                         };
+                                         return setDoc(doc(db, "users", user.uid), newUserProfile);
+                                     })
+                                     .catch(error => {
+                                          errorDiv.textContent = getFriendlyAuthError(error.code);
+                                     });
                              }
                         }
                     });
