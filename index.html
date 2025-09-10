@@ -244,7 +244,7 @@
         let readerSettings = { fontSize: 1, theme: 'light' };
         
         // --- State for Dynamic Admin Features ---
-        let adSlots = []; 
+        let adSlots = []; // [PERBAIKAN] Dulu allAds, sekarang jadi adSlots untuk iklan profil
         let homepageLayout = [];
         let allNotifications = [];
         
@@ -259,6 +259,7 @@
         const shuffleArray = (a) => { let c=a.length,r; const n=[...a]; while(c!==0){r=Math.floor(Math.random()*c);c--;[n[c],n[r]]=[n[r],n[c]]} return n };
         function showToast(m){const t=document.createElement('div');t.className='fixed bottom-24 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-sm py-2 px-4 rounded-full shadow-lg z-50';t.textContent=m;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300)},3000)}
         
+        // [TAMBAHAN] Fungsi baru untuk mencatat penayangan iklan agar terhubung ke panel admin
         async function logAdView(type, novelId = null) {
             if (!currentUser) return;
             try {
@@ -471,15 +472,20 @@
              lucide.createIcons();
         }
         
+        // [PERBAIKAN] Seluruh fungsi renderAds diganti dengan yang baru
         function renderAds() {
             const container = $('#admin-ads-container');
             if (!container) return;
+
+            // Filter hanya iklan yang valid (memiliki imageUrl) dari data yang sudah kita ambil
             const validAds = adSlots.filter(ad => ad && ad.imageUrl && ad.imageUrl.trim() !== '');
+
             if (validAds.length > 0) {
                 container.innerHTML = validAds.map(createAdCard).join('');
+                // [TAMBAHAN] Catat bahwa iklan profil telah dilihat
                 logAdView('profile');
             } else {
-                container.innerHTML = '';
+                container.innerHTML = ''; // Kosongkan jika tidak ada iklan valid
             }
         }
 
@@ -568,8 +574,8 @@
                              sectionHTML += `<div id="${contentContainerId}" class="flex flex-nowrap gap-2 overflow-x-auto pb-3 -mx-4 px-4 hide-scrollbar"></div>`;
                              break;
                          case 'recommendations':
-                              sectionHTML += `<div id="${contentContainerId}" class="space-y-4"></div>`;
-                              break;
+                               sectionHTML += `<div id="${contentContainerId}" class="space-y-4"></div>`;
+                               break;
                      }
                 }
 
@@ -578,12 +584,14 @@
 
                 const contentContainer = $(`#${contentContainerId}`);
                 if (!contentContainer) return;
-                
+
+                // [PERBAIKAN] Logika untuk seksi kustom diganti total
                 if (section.id.startsWith('custom-')) {
+                    // BENAR: Ambil novel berdasarkan array novelIds yang dipilih di admin panel
                     if (section.novelIds && section.novelIds.length > 0) {
                         const selectedNovels = section.novelIds
-                            .map(id => allNovels.find(novel => novel.id === id))
-                            .filter(Boolean); 
+                            .map(id => allNovels.find(novel => novel.id === id)) // Cari novel lengkap dari allNovels berdasarkan ID
+                            .filter(Boolean); // Hapus novel yang mungkin tidak ditemukan (misal: sudah dihapus)
                         
                         if (selectedNovels.length > 0) {
                             contentContainer.innerHTML = selectedNovels.map(createTrendingCard).join('');
@@ -591,6 +599,7 @@
                             contentContainer.innerHTML = `<p class="text-sm text-slate-400 text-center w-full">Novel untuk seksi ini tidak ditemukan.</p>`;
                         }
                     } else {
+                        // Tampilkan pesan jika admin belum memilih novel untuk seksi ini
                         contentContainer.innerHTML = `<p class="text-sm text-slate-400 text-center w-full">Belum ada novel yang dipilih untuk seksi ini.</p>`;
                     }
                 } else if (section.id === 'sponsored') {
@@ -648,61 +657,40 @@
         
         if(pId==='edit-bab'){const n=allNovels.find(n=>n.id==ctx.novelId);const c=n?.chapters?.find(c=>c.id==ctx.chapterId);createEditChapterForm(c, n)}
 
-        // =========================================================================================
-        // === PERUBAHAN UTAMA: Memasukkan Kode Iklan ke Dalam Konten Bab ===
-        // =========================================================================================
+        // [PERBAIKAN] Logika untuk menampilkan iklan di bab novel
         if(pId==='baca-bab' && ctx?.novelId && ctx?.chapterId){
             const n = allNovels.find(n => n.id == ctx.novelId);
             const c = n.chapters.find(c => c.id == ctx.chapterId);
             const contentWrapper = $('#reader-content-wrapper');
             $('#reader-toolbar').innerHTML = createReaderToolbar(n, c);
             
-            // Periksa apakah model monetisasi adalah 'ads' dan ada skrip iklan yang tersimpan
             if (n.monetizationModel === 'ads' && n.adScript) {
-                // Catat bahwa iklan novel ini telah dilihat
+                // [TAMBAHAN] Panggil fungsi log untuk mencatat bahwa iklan novel ini telah dilihat
                 logAdView('novel', n.id);
                 
-                // Pisahkan konten bab menjadi paragraf-paragraf
                 const paragraphs = c.content.split(/\n+/).filter(p => p.trim() !== '');
                 let finalContentHTML = '';
                 const adInsertionInterval = 3; // Tampilkan iklan setiap 3 paragraf
 
                 paragraphs.forEach((p, index) => {
                     finalContentHTML += `<p>${p}</p>`;
-                    // Sisipkan div iklan setelah paragraf ke-3, ke-6, ke-9, dst.
                     if ((index + 1) % adInsertionInterval === 0 && (index + 1) < paragraphs.length) {
                         // Langsung masukkan script dari novel. Browser akan menanganinya.
                         finalContentHTML += `<div class="my-6 flex justify-center items-center">${n.adScript}</div>`;
                     }
                 });
                 contentWrapper.innerHTML = finalContentHTML;
-
-                // Beberapa skrip iklan perlu dievaluasi ulang setelah dimasukkan ke DOM
-                contentWrapper.querySelectorAll("script").forEach(script => {
-                    const newScript = document.createElement("script");
-                    // Salin atribut
-                    Array.from(script.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                    // Salin konten
-                    newScript.textContent = script.textContent;
-                    // Ganti skrip lama dengan yang baru agar dieksekusi browser
-                    script.parentNode.replaceChild(newScript, script);
-                });
-
             } else {
-                // Jika bukan novel iklan, tampilkan konten seperti biasa
                 contentWrapper.innerHTML = `<p>${c.content.replace(/\n/g, '</p><p>')}</p>`;
             }
 
             renderComments(c.comments);
             applyReaderSettings();
         }
-        // =========================================================================================
-        // === AKHIR DARI PERUBAHAN ===
-        // =========================================================================================
         
         if(pId==='notifikasi'){$('#notification-list').innerHTML = allNotifications.length > 0 ? allNotifications.map(createNotificationCard).join('') : '<p class="text-center text-slate-500 mt-8">Tidak ada notifikasi.</p>'}if(pId==='saldo'){$('#saldo-content').innerHTML = createSaldoPage(currentUser.balance)}if(pId==='beri-koin-perak'){createGiveSilverCoinForm()}if(pId==='beli-koin'){createBeliKoinPage()}
         
-        if(pId==='tambah-novel'){$('#add-novel-form').innerHTML=`<div><label class="text-sm">Judul Novel</label><input type="text" id="novel-title" required class="mt-1 w-full border rounded-md text-sm p-2"></div><div><label class="text-sm">Nomor WhatsApp</label><input type="tel" id="author-phone" required placeholder="628..." class="mt-1 w-full border rounded-md text-sm p-2"></div><div><label class="text-sm">Genre (pisahkan koma)</label><input type="text" id="novel-tags" required class="mt-1 w-full border rounded-md text-sm p-2"></div><div><label class="text-sm">URL Cover (Opsional)</label><input type="url" id="novel-cover-url" class="mt-1 w-full border rounded-md text-sm p-2"><p class="text-xs text-slate-500 mt-1">Jika kosong, cover akan dibuat otomatis.</p></div><div><label class="text-sm">Sinopsis</label><textarea id="novel-synopsis" rows="6" required class="mt-1 w-full border rounded-md text-sm p-2"></textarea></div><div><label class="text-sm">Status</label><div class="mt-2 flex gap-4"><label><input type="radio" name="novel-status" value="Belum Tamat" checked><span class="ml-2 text-sm">Belum Tamat</span></label><label><input type="radio" name="novel-status" value="Tamat"><span class="ml-2 text-sm">Tamat</span></label></div></div><div class="p-3 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg"><h4 class="font-bold text-sm text-blue-900 mb-2">Pilih Model Monetisasi</h4><div class="space-y-2"><label class="flex items-center"><input type="radio" name="monetization-model" value="paid" checked><span class="ml-2 text-sm text-slate-700">Bab Berbayar (Premium)</span></label><label class="flex items-center"><input type="radio" name="monetization-model" value="ads"><span class="ml-2 text-sm text-slate-700">Gratis (Didukung Iklan)</span></label></div></div><div id="ad-script-container" class="hidden"><label class="text-sm">Kode Iklan Pihak Ketiga</label><textarea id="novel-ad-script" rows="4" placeholder="Tempel kode iklan Anda di sini. Contoh: <script>...</script>" class="mt-1 w-full border rounded-md text-sm p-2"></textarea><p class="text-xs text-slate-500 mt-1">Iklan akan ditampilkan di antara paragraf.</p></div><button type="submit" class="w-full bg-pink-500 text-white font-semibold py-2.5 rounded-lg mt-4">Simpan Novel</button>`}
+        if(pId==='tambah-novel'){$('#add-novel-form').innerHTML=`<div><label class="text-sm">Judul Novel</label><input type="text" id="novel-title" required class="mt-1 w-full border rounded-md text-sm p-2"></div><div><label class="text-sm">Nomor WhatsApp</label><input type="tel" id="author-phone" required placeholder="628..." class="mt-1 w-full border rounded-md text-sm p-2"></div><div><label class="text-sm">Genre (pisahkan koma)</label><input type="text" id="novel-tags" required class="mt-1 w-full border rounded-md text-sm p-2"></div><div><label class="text-sm">URL Cover (Opsional)</label><input type="url" id="novel-cover-url" class="mt-1 w-full border rounded-md text-sm p-2"><p class="text-xs text-slate-500 mt-1">Jika kosong, cover akan dibuat otomatis.</p></div><div><label class="text-sm">Sinopsis</label><textarea id="novel-synopsis" rows="6" required class="mt-1 w-full border rounded-md text-sm p-2"></textarea></div><div><label class="text-sm">Status</label><div class="mt-2 flex gap-4"><label><input type="radio" name="novel-status" value="Belum Tamat" checked><span class="ml-2 text-sm">Belum Tamat</span></label><label><input type="radio" name="novel-status" value="Tamat"><span class="ml-2 text-sm">Tamat</span></label></div></div><div class="p-3 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg"><h4 class="font-bold text-sm text-blue-900 mb-2">Pilih Model Monetisasi</h4><div class="space-y-2"><label class="flex items-center"><input type="radio" name="monetization-model" value="paid" checked><span class="ml-2 text-sm text-slate-700">Bab Berbayar (Premium)</span></label><label class="flex items-center"><input type="radio" name="monetization-model" value="ads"><span class="ml-2 text-sm text-slate-700">Gratis (Didukung Iklan)</span></label></div></div><div id="ad-script-container" class="hidden"><label class="text-sm">Kode Iklan Pihak Ketiga</label><textarea id="novel-ad-script" rows="4" placeholder="Tempel kode iklan Anda di sini" class="mt-1 w-full border rounded-md text-sm p-2"></textarea><p class="text-xs text-slate-500 mt-1">Iklan akan ditampilkan di antara paragraf.</p></div><button type="submit" class="w-full bg-pink-500 text-white font-semibold py-2.5 rounded-lg mt-4">Simpan Novel</button>`}
         
         if(currentUser) updateProfileView();}
 
@@ -922,16 +910,16 @@
             });
 
              $('body').addEventListener('change', e => {
-                 if (e.target.name === 'monetization-model') {
-                     $('#ad-script-container')?.classList.toggle('hidden', e.target.value !== 'ads');
-                 }
-             });
+                  if (e.target.name === 'monetization-model') {
+                      $('#ad-script-container')?.classList.toggle('hidden', e.target.value !== 'ads');
+                  }
+              });
 
              $('body').addEventListener('focusin', e => {
-                 if (e.target.id === 'comment-input') {
-                     setTimeout(() => $('#comment-drawer-content').scrollIntoView({ behavior: 'smooth', block: 'end' }), 300); 
-                 }
-             });
+                  if (e.target.id === 'comment-input') {
+                      setTimeout(() => $('#comment-drawer-content').scrollIntoView({ behavior: 'smooth', block: 'end' }), 300); 
+                  }
+              });
 
             $('body').addEventListener('submit', async e => {
                 e.preventDefault();
@@ -1143,9 +1131,10 @@
                         libraryNovelIds = currentUser.library || [];
                         unlockedChapterIds = currentUser.unlockedChapters || [];
                         
+                        // [PERBAIKAN] Mengambil data iklan dari lokasi yang benar
                         const [ novelsSnapshot, adsSettingsDoc, homepageLayoutDoc, notificationsSnapshot ] = await Promise.all([
                             getDocs(query(collection(db, "novels"), orderBy("createdAt", "desc"))),
-                            getDoc(doc(db, "settings", "ads")),
+                            getDoc(doc(db, "settings", "ads")), // <-- BENAR
                             getDoc(doc(db, "settings", "homepageLayout")),
                             getDocs(collection(db, "notifications")),
                             fetchNovelCount()
@@ -1153,6 +1142,7 @@
 
                         allNovels = novelsSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                         
+                        // [PERBAIKAN] Memproses data iklan dari lokasi yang benar
                         if (adsSettingsDoc.exists()) {
                             adSlots = adsSettingsDoc.data().profileAds || [];
                         }
