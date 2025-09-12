@@ -716,430 +716,441 @@
         if(currentUser) updateProfileView();}
 
         function setupEventListeners(){
-            let cNId,cCId;
-            
-            $('#logout-btn').addEventListener('click', () => { signOut(auth); }); 
-            $('#nav-container').addEventListener('click',e=>{const n=e.target.closest('.nav-item');if(!n)return;e.preventDefault();const t=n.hash.substring(1);$$('.nav-item').forEach(i=>{i.classList.toggle('text-pink-500',i===n);i.classList.toggle('text-slate-500',i!==n);i.querySelector('span').classList.toggle('font-semibold',i===n)});history.pushState({page:t},'',`#${t}`);updateDynamicUI(t)});
-            
-            $('#writer-action-button').addEventListener('click',e=>{e.preventDefault();if(currentUser.role==='penulis')updateDynamicUI('dashboard-penulis');else $('#writer-signup-modal').classList.remove('hidden')});
-            $('#profile-avatar').addEventListener('click',()=>$('#profile-options').classList.toggle('hidden'));
-            $('#close-modal-btn').addEventListener('click', async () => { try { const userRef = doc(db, "users", currentUser.uid); await updateDoc(userRef, { role: 'penulis' }); currentUser.role = 'penulis'; showToast('Selamat, Anda sekarang adalah penulis!'); updateProfileView(); } catch (e) { showToast('Gagal memperbarui role.'); console.error(e); } finally {$('#writer-signup-modal').classList.add('hidden');}});
-            
-            $('#add-novel-btn').addEventListener('click', () => {
-    history.pushState({ page: 'tambah-novel' }, '', '#tambah-novel');
-    updateDynamicUI('tambah-novel');
-});
+    let cNId,cCId;
+    
+    $('#logout-btn').addEventListener('click', () => { signOut(auth); }); 
+    $('#nav-container').addEventListener('click',e=>{const n=e.target.closest('.nav-item');if(!n)return;e.preventDefault();const t=n.hash.substring(1);$$('.nav-item').forEach(i=>{i.classList.toggle('text-pink-500',i===n);i.classList.toggle('text-slate-500',i!==n);i.querySelector('span').classList.toggle('font-semibold',i===n)});history.pushState({page:t},'',`#${t}`);updateDynamicUI(t)});
+    
+    $('#writer-action-button').addEventListener('click',e=>{e.preventDefault();if(currentUser.role==='penulis')updateDynamicUI('dashboard-penulis');else $('#writer-signup-modal').classList.remove('hidden')});
+    $('#profile-avatar').addEventListener('click',()=>$('#profile-options').classList.toggle('hidden'));
+    $('#close-modal-btn').addEventListener('click', async () => { try { const userRef = doc(db, "users", currentUser.uid); await updateDoc(userRef, { role: 'penulis' }); currentUser.role = 'penulis'; showToast('Selamat, Anda sekarang adalah penulis!'); updateProfileView(); } catch (e) { showToast('Gagal memperbarui role.'); console.error(e); } finally {$('#writer-signup-modal').classList.add('hidden');}});
+    
+    $('#add-novel-btn').addEventListener('click', () => {
+        history.pushState({ page: 'tambah-novel' }, '', '#tambah-novel');
+        updateDynamicUI('tambah-novel');
+    });
 
-$('#buy-coin-button').addEventListener('click', (e) => {
-    e.preventDefault();
-    history.pushState({ page: 'beli-koin' }, '', '#beli-koin');
-    updateDynamicUI('beli-koin');
-});
+    $('#buy-coin-button').addEventListener('click', (e) => {
+        e.preventDefault();
+        history.pushState({ page: 'beli-koin' }, '', '#beli-koin');
+        updateDynamicUI('beli-koin');
+    });
 
-$('#saldo-koin-button').addEventListener('click', (e) => {
-    e.preventDefault();
-    history.pushState({ page: 'saldo' }, '', '#saldo');
-    updateDynamicUI('saldo');
-});
+    $('#saldo-koin-button').addEventListener('click', (e) => {
+        e.preventDefault();
+        history.pushState({ page: 'saldo' }, '', '#saldo');
+        updateDynamicUI('saldo');
+    });
 
-$('#main-header').addEventListener('click', e => {
-    const sB = e.target.closest('#search-btn');
-    if (sB) {
-        history.pushState({ page: 'jelajah' }, '', '#jelajah');
-        updateDynamicUI('jelajah');
-    }
-
-    const nB = e.target.closest('#notification-btn');
-    if (nB) {
-        history.pushState({ page: 'notifikasi' }, '', '#notifikasi');
-        updateDynamicUI('notifikasi');
-    }
-});
-            $('#pagination-controls').addEventListener('click', e => {
-                const button = e.target.closest('button');
-                if (!button) return;
-                const pageAction = button.dataset.page;
-                if (pageAction === 'prev' && currentPage > 1) {
-                    fetchJelajahPage(currentPage - 1);
-                } else if (pageAction === 'next') {
-                    const totalPages = Math.ceil(totalNovels / jelajahItemsPerPage);
-                    if (currentPage < totalPages) {
-                        fetchJelajahPage(currentPage + 1);
-                    }
-                }
-            });
-
-            $('body').addEventListener('click', async e => { 
-                if (e.target.classList.contains('modal')) e.target.classList.add('hidden');
-                const closeBtn = e.target.closest('.close-modal-btn');
-                if (closeBtn) closeBtn.closest('.modal')?.classList.add('hidden');
-
-                const changePenNameBtn = e.target.closest('#change-pen-name-btn'); 
-                if (changePenNameBtn) { 
-                    const newPenName = $('#pen-name-edit').value.trim(); 
-                    if (newPenName && newPenName !== currentUser.penName) { 
-                        try { 
-                            const userRef = doc(db, "users", currentUser.uid); 
-                            await updateDoc(userRef, { penName: newPenName }); 
-                            const novelsQuery = query(collection(db, "novels"), where("author", "==", currentUser.email));
-                            const querySnapshot = await getDocs(novelsQuery);
-                            const batch = writeBatch(db);
-                            querySnapshot.forEach((novelDoc) => batch.update(doc(db, "novels", novelDoc.id), { authorPenName: newPenName }));
-                            await batch.commit();
-                            currentUser.penName = newPenName;
-                            allNovels.forEach(novel => { if (novel.author === currentUser.email) novel.authorPenName = newPenName; });
-                            await refreshAuthorProfiles();
-                            loadContent(); 
-                            renderMyNovels();
-                            updateProfileView();
-                            showToast('Nama pena berhasil diperbarui!'); 
-                        } catch (err) { 
-                            console.error(err); 
-                            showToast('Gagal memperbarui nama pena.'); 
-                        } 
-                    } 
-                }
-                const changeAvatarBtn = e.target.closest('#change-avatar-btn');
-                if (changeAvatarBtn) {
-                    let newAvatarUrl = $('#avatar-url').value;
-                    if (newAvatarUrl) {
-                        try {
-                            const userRef = doc(db, "users", currentUser.uid);
-                            await updateDoc(userRef, { avatarUrl: newAvatarUrl });
-                            currentUser.avatarUrl = newAvatarUrl;
-                            await refreshAuthorProfiles();
-                            loadContent();
-                            showToast('Foto profil berhasil diperbarui!');
-                            updateProfileView();
-                        } catch(err){
-                           console.error(err);
-                           showToast('Gagal memperbarui foto profil.');
-                        }
-                    }
-                }
-                const shareBtnAction = (btn) => {
-                    e.preventDefault();
-                    const novelId=btn.dataset.novelId;
-                    const shareableLink=`${window.location.href.split('#')[0]}#detail-novel&id=${novelId}`;
-                    copyToClipboardFallback(shareableLink);
-                };
-                const sNB=e.target.closest('.share-novel-btn'); if(sNB) shareBtnAction(sNB);
-                const shareDetailBtn = e.target.closest('#share-detail-btn'); if(shareDetailBtn) shareBtnAction(shareDetailBtn);
-                
-                const nC=e.target.closest('.novel-card');
-                if(nC&&!e.target.closest('.delete-library-btn')){
-                    const nId=nC.dataset.novelId;
-                    incrementNovelClickCount(nId); 
-                    history.pushState({page:'detail-novel',novelId:nId},'');
-                    updateDynamicUI('detail-novel',{novelId:nId});
-                }
-
-                const dB=e.target.closest('.delete-library-btn');
-                if(dB){ 
-                    const novelId = dB.dataset.novelId; 
-                    const index = libraryNovelIds.indexOf(novelId); 
-                    if (index > -1) { 
-                        libraryNovelIds.splice(index, 1); 
-                        try { 
-                            await updateDoc(doc(db, "users", currentUser.uid), { library: libraryNovelIds }); 
-                            dB.closest('.novel-card').remove(); 
-                            showToast('Novel dihapus dari pustaka.'); 
-                        } catch(err) { 
-                            console.error(err); 
-                            showToast('Gagal menghapus novel dari pustaka.'); 
-                            libraryNovelIds.push(novelId); 
-                        } 
-                    } 
-                }
-
-                const aL = e.target.closest('#add-to-library-btn');
-                if (aL) {
-                    const nId = aL.dataset.novelId;
-                    if (!libraryNovelIds.includes(nId)) {
-                        libraryNovelIds.push(nId);
-                        try {
-                            await updateDoc(doc(db, "users", currentUser.uid), { library: libraryNovelIds });
-                            showToast('Novel ditambahkan ke koleksi!');
-                            renderPustaka();
-                        } catch (err) {
-                            console.error(err);
-                            showToast('Gagal menambahkan ke koleksi.');
-                            libraryNovelIds.pop();
-                        }
-                    } else {
-                        showToast('Novel sudah ada di koleksi.');
-                    }
-                }
-
-                const eNB=e.target.closest('.edit-novel-btn');if(eNB){cNId=eNB.dataset.novelId;history.pushState({page:'edit-novel',novelId:cNId},'');updateDynamicUI('edit-novel',{novelId:cNId})}
-                const aCB=e.target.closest('#add-chapter-btn');if(aCB){cNId=aCB.dataset.novelId;cCId=null;history.pushState({page:'edit-bab',novelId:cNId},'');updateDynamicUI('edit-bab',{novelId:cNId, chapterId: null})}
-                
-                const pNB = e.target.closest('.promote-novel-btn');
-                if (pNB) {
-                    const novelId = pNB.dataset.novelId;
-                    const novel = allNovels.find(n => n.id == novelId);
-                    if (novel && currentUser.balance.gold >= 50) {
-                        pNB.disabled = true;
-                        try {
-                            const batch = writeBatch(db);
-                            batch.update(doc(db, "novels", novelId), { isPromoted: true, promotedAt: new Date() });
-                            const newGoldBalance = currentUser.balance.gold - 50;
-                            batch.update(doc(db, "users", currentUser.uid), { "balance.gold": newGoldBalance });
-                            await batch.commit();
-                            currentUser.balance.gold = newGoldBalance;
-                            novel.isPromoted = true;
-                            novel.promotedAt = { toDate: () => new Date() };
-                            showToast(`"${novel.title}" berhasil dipromosikan!`);
-                            renderMyNovels();
-                            loadContent();
-                        } catch (error) {
-                            console.error("Gagal mempromosikan novel: ", error);
-                            showToast('Gagal mempromosikan novel.');
-                            pNB.disabled = false;
-                        }
-                    } else {
-                        showToast('Koin Emas tidak cukup (butuh 50).');
-                    }
-                }
-
-                const eCB=e.target.closest('.edit-chapter-btn');if(eCB){cCId=eCB.dataset.chapterId;history.pushState({page:'edit-bab',novelId:cNId,chapterId:cCId},'');updateDynamicUI('edit-bab',{novelId:cNId,chapterId:cCId})}
-                const gSCB = e.target.closest('#give-silver-coin-btn'); if(gSCB){updateDynamicUI('beri-koin-perak')} 
-                const bCL=e.target.closest('.buy-coin-link');if(bCL){const p=bCL.dataset.package;const m=encodeURIComponent(`Halo Admin, saya ${currentUser.email}, ingin membeli paket ${p}.`);window.open(`https://wa.me/6287745646067?text=${m}`,'_blank')}
-                const aLi=e.target.closest('.author-link, .author-card');if(aLi){const a=aLi.dataset.author;history.pushState({page:'jelajah',author:a},'');updateDynamicUI('jelajah',{author:a})}
-                const gT=e.target.closest('.genre-tag');if(gT){e.stopPropagation();const g=gT.dataset.genre;history.pushState({page:'jelajah',genre:g},'');updateDynamicUI('jelajah',{genre:g})}
-                
-                const cL=e.target.closest('.chapter-link');if(cL){e.preventDefault();const nId=cL.dataset.novelId;const cId=cL.dataset.chapterId;cNId=nId; cCId=cId; const n=allNovels.find(n=>n.id==nId);const c=n.chapters.find(c=>c.id==cId); const isAdSupported = n.monetizationModel === 'ads'; if(isAdSupported || c.monetization==='free'||unlockedChapterIds.includes(cId)){history.pushState({page:'baca-bab',novelId:nId,chapterId:cId},'');updateDynamicUI('baca-bab',{novelId:nId,chapterId:cId})}else{$('#unlock-chapter-modal-content').innerHTML=createUnlockModal(c,n);$('#unlock-chapter-modal').classList.remove('hidden');lucide.createIcons()}}
-
-                const uWC=e.target.closest('.unlock-with-coin-btn');if(uWC){const canUnlock=uWC.dataset.canUnlock==='true';const coinType=uWC.dataset.coinType;const novel=allNovels.find(n=>n.id==cNId);if(!canUnlock){$('#unlock-chapter-modal').classList.add('hidden');if(coinType==='gold'){showToast('Koin Emas tidak cukup. Silakan top up.');updateDynamicUI('beli-koin')}else{$('#coin-info-modal-content').innerHTML = createCoinInfoModal(novel.authorPhone); $('#coin-info-modal').classList.remove('hidden'); lucide.createIcons();}}else{const chapter=novel.chapters.find(c=>c.id==cCId); if(coinType==='gold'){currentUser.balance.gold-=10}else{currentUser.balance.silver[novel.authorPenName] = (currentUser.balance.silver[novel.authorPenName] || 0) - 10;} unlockedChapterIds.push(chapter.id); try { await updateDoc(doc(db, "users", currentUser.uid), { balance: currentUser.balance, unlockedChapters: unlockedChapterIds }); $('#unlock-chapter-modal').classList.add('hidden'); showToast(`Bab "${chapter.title}" berhasil dibuka!`); history.pushState({page:'baca-bab',novelId:cNId,chapterId:cCId},''); updateDynamicUI('baca-bab',{novelId:cNId,chapterId:cCId}); } catch(err) { console.error(err); showToast('Gagal membuka bab.'); if(coinType==='gold'){currentUser.balance.gold+=10}else{currentUser.balance.silver[novel.authorPenName]+=10;} unlockedChapterIds.pop(); } }}
-                const bgcr = e.target.closest('#buy-gold-coin-redirect'); if(bgcr){$('#coin-info-modal').classList.add('hidden');history.pushState({page:'beli-koin'},'', '#beli-koin');updateDynamicUI('beli-koin');} 
-                const wD=e.target.closest('#withdraw-btn');if(wD){const m=encodeURIComponent(`Halo Admin, saya ${currentUser.email}, ingin melakukan penarikan dana.`);window.open(`https://wa.me/6287745646067?text=${m}`,'_blank')} 
-                const rsB=e.target.closest('#reader-settings-btn');if(rsB){const m=$('#reader-settings-menu');if(m){m.remove()}else{$('#reader-toolbar').insertAdjacentHTML('beforeend',`<div id="reader-settings-menu" class="absolute top-full right-2 bg-white rounded-lg shadow-lg border mt-2 w-48">${createReaderSettingsMenu()}</div>`)}}
-                const bfrB=e.target.closest('#back-from-reader');if(bfrB){window.history.back()}
-                const df=e.target.closest('#decrease-font');if(df){if(readerSettings.fontSize>0)readerSettings.fontSize--;applyReaderSettings()}
-                const iF=e.target.closest('#increase-font');if(iF){if(readerSettings.fontSize<fontSizes.length-1)readerSettings.fontSize++;applyReaderSettings()}
-                const themeBtn = e.target.closest('[id^="theme-"]'); if(themeBtn){readerSettings.theme = themeBtn.id.split('-')[1]; applyReaderSettings();}
-                const tsb = e.target.closest('.topup-silver-btn'); if(tsb){const authorName = tsb.dataset.authorName; const author = dummyAuthors.find(a => a.name === authorName); if(author?.phone){const msg = encodeURIComponent(`Halo kak ${authorName}, saya ingin top up Koin Perak.`); window.open(`https.wa.me/${author.phone}?text=${msg}`,'_blank');}} 
-                const tgb = e.target.closest('#topup-gold-btn'); if(tgb){history.pushState({page:'beli-koin'},'', '#beli-koin'); updateDynamicUI('beli-koin');} 
-                const bsib = e.target.closest('#buy-silver-info-btn'); if(bsib){showToast('Pilih penulis dari halaman Saldo Koin.'); history.pushState({page:'saldo'},'', '#saldo'); updateDynamicUI('saldo');}
-                const openCommentBtn = e.target.closest('#open-comment-drawer-btn');
-                if(openCommentBtn) {
-                    const novel = allNovels.find(n => n.id == cNId);
-                    if (novel) {
-                        const chapter = novel.chapters.find(c => c.id == cCId);
-                        if (chapter) renderComments(chapter.comments);
-                    }
-                    $('#comment-drawer').classList.remove('hidden');
-                    setTimeout(() => $('#comment-drawer-content').classList.remove('translate-y-full'), 10);
-                }
-                const closeCommentBtn = e.target.closest('#close-comment-drawer-btn');
-                if(closeCommentBtn || e.target.id === 'comment-drawer') {
-                    $('#comment-drawer-content').classList.add('translate-y-full');
-                    setTimeout(() => $('#comment-drawer').classList.add('hidden'), 300);
-                }
-            });
-            
-            $('body').addEventListener('input',e=>{
-                if(e.target.id==='monetize-toggle'){$('#monetize-options').classList.toggle('hidden',!e.target.checked)}
-                if(e.target.id==='ai-percentage'){$('#ai-percentage-label').textContent=`${e.target.value}% AI`}
-                if(e.target.id==='chapter-content'){const wC=e.target.value.trim().split(/\s+/).filter(Boolean).length;$('#word-count').textContent=`${wC}/1000 kata minimum`;$('#word-count').classList.toggle('text-green-600',wC>=1000)}
-                
-                if(e.target.id==='search-input'){
-                    const q = e.target.value.toLowerCase().trim();
-                    const paginationControls = $('#pagination-controls');
-                    if (q.length > 0) {
-                        paginationControls.style.display = 'none';
-                        const searchResults = allNovels.filter(n => n.title.toLowerCase().includes(q) || (n.authorPenName && n.authorPenName.toLowerCase().includes(q)));
-                        renderJelajahUI(searchResults);
-                    } else {
-                        paginationControls.style.display = 'flex';
-                        fetchJelajahPage(1);
-                    }
-                }
-            });
-
-            $('body').addEventListener('change', e => {
-                if (e.target.name === 'monetization-model') {
-                    $('#ad-script-container')?.classList.toggle('hidden', e.target.value !== 'ads');
-                }
-            });
-
-            $('body').addEventListener('focusin', e => {
-                if (e.target.id === 'comment-input') {
-                    setTimeout(() => $('#comment-drawer-content').scrollIntoView({ behavior: 'smooth', block: 'end' }), 300); 
-                }
-            });
-
-            $('body').addEventListener('submit', async e => {
-                e.preventDefault();
-
-                if(e.target.id === 'edit-novel-form') {
-                    const updatedData = {
-                        title: $('#edit-novel-title').value.trim(),
-                        description: $('#edit-novel-synopsis').value.trim(),
-                        tags: $('#edit-novel-tags').value.split(',').map(name => ({ name: name.trim() })).filter(tag => tag.name)
-                    };
-                    try {
-                        await updateDoc(doc(db, "novels", cNId), updatedData);
-                        const novelIndex = allNovels.findIndex(n => n.id === cNId);
-                        if (novelIndex > -1) allNovels[novelIndex] = { ...allNovels[novelIndex], ...updatedData };
-                        showToast('Detail novel berhasil diperbarui!');
-                        window.history.back();
-                    } catch (error) {
-                        console.error("Gagal memperbarui novel:", error);
-                        showToast('Gagal memperbarui detail novel.');
-                    }
-                }
-
-                // --- [FIX #2 - ADD NOVEL] ---
-                // Memperbaiki logika penambahan novel agar tidak menampilkan pesan error palsu.
-                if(e.target.id === 'add-novel-form'){ 
-                    const f=e.target; 
-                    let coverUrl = f['novel-cover-url'].value.trim();
-                    const title = f['novel-title'].value;
-                    if (!coverUrl) coverUrl = `https://placehold.co/400x600/fecdd3/44403c?text=${encodeURIComponent(title.split(' ').slice(0, 2).join(' '))}`;
-                    const monetizationModel = f['monetization-model'].value;
-                    const newNovel={ 
-                        title: title, 
-                        author:currentUser.email, 
-                        authorPenName: currentUser.penName, 
-                        authorPhone:f['author-phone'].value, 
-                        coverUrl: coverUrl,
-                        description:f['novel-synopsis'].value, 
-                        tags:f['novel-tags'].value.split(',').map(name=>({name:name.trim()})), 
-                        status:f['novel-status'].value, 
-                        chapters:[], 
-                        createdAt: new Date(),
-                        clickCount: 0,
-                        monetizationModel: monetizationModel,
-                        adScript: (monetizationModel === 'ads') ? f['novel-ad-script'].value.trim() : null
-                    }; 
-
-                    try { 
-                        const docRef = await addDoc(collection(db, "novels"), newNovel); 
-                        // Anggap berhasil, langsung update UI
-                        const newNovelForState = { id: docRef.id, ...newNovel, createdAt: { toDate: () => newNovel.createdAt } };
-                        allNovels.unshift(newNovelForState); // unshift agar muncul di atas
-                        f.reset(); 
-                        showToast('Novel berhasil disimpan!'); 
-                        updateDynamicUI('dashboard-penulis'); 
-                        
-                        // Coba update metadata secara terpisah. Jika gagal, tidak apa-apa.
-                        try {
-                            await updateDoc(doc(db, "metadata", "novels"), { count: increment(1) });
-                            totalNovels++;
-                        } catch (metaError) {
-                            console.error("Gagal memperbarui metadata, tapi novel sudah ditambahkan:", metaError);
-                        }
-
-                    } catch (error) { 
-                        console.error("Gagal menambahkan dokumen novel: ", error); 
-                        showToast('Gagal menyimpan novel.'); 
-                    } 
-                }
-                
-                if(e.target.id==='edit-chapter-form'){ 
-                    const action = e.submitter.dataset.action;
-                    const novelId = $('#chapter-form-novel-id').value;
-                    const novelToUpdate = allNovels.find(n => n.id == novelId); 
-                    if(!novelToUpdate) { showToast("Error: Novel tidak ditemukan."); return; }
-                    let monetization = novelToUpdate.monetizationModel === 'paid' ? (e.target.querySelector('#monetize-toggle')?.checked ? 'paid' : 'free') : 'free';
-                    const content = $('#chapter-content').value;
-                    const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
-                    if (action === 'publish' && monetization === 'paid' && wordCount < 1000) {
-                        showToast(`Gagal. Bab berbayar harus minimal 1000 kata. (Saat ini: ${wordCount} kata)`);
-                        return;
-                    }
-                    const chapterData = { 
-                        id: cCId || Date.now().toString(), 
-                        title: $('#chapter-title').value, 
-                        monetization: monetization, 
-                        ai_percent: $('#ai-percentage').value, 
-                        content: content,
-                        comments: novelToUpdate.chapters?.find(c => c.id == cCId)?.comments || [],
-                        status: action === 'publish' ? 'published' : 'draft'
-                    }; 
-                    let updatedChapters = cCId ? novelToUpdate.chapters.map(c => c.id == cCId ? chapterData : c) : [...(novelToUpdate.chapters || []), chapterData]; 
-                    try { 
-                        await updateDoc(doc(db, "novels", novelId), { chapters: updatedChapters }); 
-                        novelToUpdate.chapters = updatedChapters; 
-                        showToast(`Bab berhasil disimpan sebagai ${action === 'draft' ? 'draf' : 'publikasi'}!`); 
-                        window.history.back(); 
-                    } catch (error) { 
-                        console.error("Error updating chapter: ", error); 
-                        showToast("Gagal menyimpan bab."); 
-                    } 
-                }
-                
-                if(e.target.id === 'give-silver-coin-form'){
-                    const email = $('#reader-email').value;
-                    const amount = parseInt($('#silver-amount').value, 10);
-                    if (!email || !amount || amount <= 0) { showToast('Email dan jumlah koin harus valid.'); return; }
-                    try {
-                        const q = query(collection(db, "users"), where("email", "==", email));
-                        const querySnapshot = await getDocs(q);
-                        if (querySnapshot.empty) { showToast('Pengguna tidak ditemukan.'); return; }
-                        const recipientDoc = querySnapshot.docs[0];
-                        await updateDoc(doc(db, "users", recipientDoc.id), {
-                            [`balance.silver.${currentUser.penName}`]: increment(amount)
-                        });
-                        showToast(`${amount} koin perak berhasil dikirim!`);
-                        e.target.reset();
-                        updateDynamicUI('dashboard-penulis');
-                    } catch (error) {
-                        console.error("Gagal mengirim koin perak:", error);
-                        showToast('Gagal mengirim koin perak.');
-                    }
-                }
-                
-                // --- [FIX #3 - COMMENT] ---
-                // Mengganti total logika pengiriman komentar agar lebih aman dan andal.
-                if(e.target.id === 'comment-form'){ 
-                    const input = $('#comment-input'); 
-                    const text = input.value.trim(); 
-                    if(text && cNId && cCId){ 
-                        const newComment = {
-                            user: currentUser.penName || currentUser.email.split('@')[0],
-                            text: text,
-                            createdAt: new Date() // Menambah timestamp
-                        };
-                        const novelRef = doc(db, "novels", cNId);
-
-                        try {
-                            // Ambil data novel terbaru sebelum update
-                            const novelDoc = await getDoc(novelRef);
-                            if (!novelDoc.exists()) throw new Error("Novel tidak ditemukan");
-                            
-                            const novelData = novelDoc.data();
-                            const chapters = novelData.chapters || [];
-                            const chapterIndex = chapters.findIndex(c => c.id == cCId);
-                            if (chapterIndex === -1) throw new Error("Bab tidak ditemukan");
-                            
-                            // Pastikan array comments ada
-                            if (!chapters[chapterIndex].comments) {
-                                chapters[chapterIndex].comments = [];
-                            }
-                            
-                            chapters[chapterIndex].comments.push(newComment);
-                            
-                            // Update seluruh field chapters dengan data baru
-                            await updateDoc(novelRef, { chapters: chapters });
-                            
-                            // Update state lokal untuk UI
-                            const localNovel = allNovels.find(n => n.id == cNId);
-                            if (localNovel) localNovel.chapters = chapters;
-                            
-                            renderComments(chapters[chapterIndex].comments);
-                            input.value = '';
-                        } catch(err){ 
-                            console.error("Gagal mengirim komentar:", err); 
-                            showToast("Gagal mengirim komentar."); 
-                        } 
-                    } 
-                }
-            });
-            
-            window.addEventListener('popstate',e=>{const p=e.state?.page||'beranda';updateDynamicUI(p,e.state)});
+    $('#main-header').addEventListener('click', e => {
+        const sB = e.target.closest('#search-btn');
+        if (sB) {
+            history.pushState({ page: 'jelajah' }, '', '#jelajah');
+            updateDynamicUI('jelajah');
         }
+
+        const nB = e.target.closest('#notification-btn');
+        if (nB) {
+            history.pushState({ page: 'notifikasi' }, '', '#notifikasi');
+            updateDynamicUI('notifikasi');
+        }
+    });
+    
+    $('#pagination-controls').addEventListener('click', e => {
+        const button = e.target.closest('button');
+        if (!button) return;
+        const pageAction = button.dataset.page;
+        if (pageAction === 'prev' && currentPage > 1) {
+            fetchJelajahPage(currentPage - 1);
+        } else if (pageAction === 'next') {
+            const totalPages = Math.ceil(totalNovels / jelajahItemsPerPage);
+            if (currentPage < totalPages) {
+                fetchJelajahPage(currentPage + 1);
+            }
+        }
+    });
+
+    $('body').addEventListener('click', async e => { 
+        if (e.target.classList.contains('modal')) e.target.classList.add('hidden');
+        const closeBtn = e.target.closest('.close-modal-btn');
+        if (closeBtn) closeBtn.closest('.modal')?.classList.add('hidden');
+
+        const changePenNameBtn = e.target.closest('#change-pen-name-btn'); 
+        if (changePenNameBtn) { 
+            const newPenName = $('#pen-name-edit').value.trim(); 
+            if (newPenName && newPenName !== currentUser.penName) { 
+                try { 
+                    const userRef = doc(db, "users", currentUser.uid); 
+                    await updateDoc(userRef, { penName: newPenName }); 
+                    const novelsQuery = query(collection(db, "novels"), where("author", "==", currentUser.email));
+                    const querySnapshot = await getDocs(novelsQuery);
+                    const batch = writeBatch(db);
+                    querySnapshot.forEach((novelDoc) => batch.update(doc(db, "novels", novelDoc.id), { authorPenName: newPenName }));
+                    await batch.commit();
+                    currentUser.penName = newPenName;
+                    allNovels.forEach(novel => { if (novel.author === currentUser.email) novel.authorPenName = newPenName; });
+                    await refreshAuthorProfiles();
+                    loadContent(); 
+                    renderMyNovels();
+                    updateProfileView();
+                    showToast('Nama pena berhasil diperbarui!'); 
+                } catch (err) { 
+                    console.error(err); 
+                    showToast('Gagal memperbarui nama pena.'); 
+                } 
+            } 
+        }
+        const changeAvatarBtn = e.target.closest('#change-avatar-btn');
+        if (changeAvatarBtn) {
+            let newAvatarUrl = $('#avatar-url').value;
+            if (newAvatarUrl) {
+                try {
+                    const userRef = doc(db, "users", currentUser.uid);
+                    await updateDoc(userRef, { avatarUrl: newAvatarUrl });
+                    currentUser.avatarUrl = newAvatarUrl;
+                    await refreshAuthorProfiles();
+                    loadContent();
+                    showToast('Foto profil berhasil diperbarui!');
+                    updateProfileView();
+                } catch(err){
+                   console.error(err);
+                   showToast('Gagal memperbarui foto profil.');
+                }
+            }
+        }
+        const shareBtnAction = (btn) => {
+            e.preventDefault();
+            const novelId=btn.dataset.novelId;
+            const shareableLink=`${window.location.href.split('#')[0]}#detail-novel&id=${novelId}`;
+            copyToClipboardFallback(shareableLink);
+        };
+        const sNB=e.target.closest('.share-novel-btn'); if(sNB) shareBtnAction(sNB);
+        const shareDetailBtn = e.target.closest('#share-detail-btn'); if(shareDetailBtn) shareBtnAction(shareDetailBtn);
+        
+        const nC=e.target.closest('.novel-card');
+        if(nC&&!e.target.closest('.delete-library-btn')){
+            const nId=nC.dataset.novelId;
+            incrementNovelClickCount(nId); 
+            history.pushState({page:'detail-novel',novelId:nId},'');
+            updateDynamicUI('detail-novel',{novelId:nId});
+        }
+
+        const dB=e.target.closest('.delete-library-btn');
+        if(dB){ 
+            const novelId = dB.dataset.novelId; 
+            const index = libraryNovelIds.indexOf(novelId); 
+            if (index > -1) { 
+                libraryNovelIds.splice(index, 1); 
+                try { 
+                    await updateDoc(doc(db, "users", currentUser.uid), { library: libraryNovelIds }); 
+                    dB.closest('.novel-card').remove(); 
+                    showToast('Novel dihapus dari pustaka.'); 
+                } catch(err) { 
+                    console.error(err); 
+                    showToast('Gagal menghapus novel dari pustaka.'); 
+                    libraryNovelIds.push(novelId); 
+                } 
+            } 
+        }
+
+        const aL = e.target.closest('#add-to-library-btn');
+        if (aL) {
+            const nId = aL.dataset.novelId;
+            if (!libraryNovelIds.includes(nId)) {
+                libraryNovelIds.push(nId);
+                try {
+                    await updateDoc(doc(db, "users", currentUser.uid), { library: libraryNovelIds });
+                    showToast('Novel ditambahkan ke koleksi!');
+                    renderPustaka();
+                } catch (err) {
+                    console.error(err);
+                    showToast('Gagal menambahkan ke koleksi.');
+                    libraryNovelIds.pop();
+                }
+            } else {
+                showToast('Novel sudah ada di koleksi.');
+            }
+        }
+
+        const eNB=e.target.closest('.edit-novel-btn');if(eNB){cNId=eNB.dataset.novelId;history.pushState({page:'edit-novel',novelId:cNId},'');updateDynamicUI('edit-novel',{novelId:cNId})}
+        const aCB=e.target.closest('#add-chapter-btn');if(aCB){cNId=aCB.dataset.novelId;cCId=null;history.pushState({page:'edit-bab',novelId:cNId},'');updateDynamicUI('edit-bab',{novelId:cNId, chapterId: null})}
+        
+        const pNB = e.target.closest('.promote-novel-btn');
+        if (pNB) {
+            const novelId = pNB.dataset.novelId;
+            const novel = allNovels.find(n => n.id == novelId);
+            if (novel && currentUser.balance.gold >= 50) {
+                pNB.disabled = true;
+                try {
+                    const batch = writeBatch(db);
+                    batch.update(doc(db, "novels", novelId), { isPromoted: true, promotedAt: new Date() });
+                    const newGoldBalance = currentUser.balance.gold - 50;
+                    batch.update(doc(db, "users", currentUser.uid), { "balance.gold": newGoldBalance });
+                    await batch.commit();
+                    currentUser.balance.gold = newGoldBalance;
+                    novel.isPromoted = true;
+                    novel.promotedAt = { toDate: () => new Date() };
+                    showToast(`"${novel.title}" berhasil dipromosikan!`);
+                    renderMyNovels();
+                    loadContent();
+                } catch (error) {
+                    console.error("Gagal mempromosikan novel: ", error);
+                    showToast('Gagal mempromosikan novel.');
+                    pNB.disabled = false;
+                }
+            } else {
+                showToast('Koin Emas tidak cukup (butuh 50).');
+            }
+        }
+
+        const eCB=e.target.closest('.edit-chapter-btn');if(eCB){cCId=eCB.dataset.chapterId;history.pushState({page:'edit-bab',novelId:cNId,chapterId:cCId},'');updateDynamicUI('edit-bab',{novelId:cNId,chapterId:cCId})}
+        const gSCB = e.target.closest('#give-silver-coin-btn'); if(gSCB){updateDynamicUI('beri-koin-perak')} 
+        const bCL=e.target.closest('.buy-coin-link');if(bCL){const p=bCL.dataset.package;const m=encodeURIComponent(`Halo Admin, saya ${currentUser.email}, ingin membeli paket ${p}.`);window.open(`https://wa.me/6287745646067?text=${m}`,'_blank')}
+        const aLi=e.target.closest('.author-link, .author-card');if(aLi){const a=aLi.dataset.author;history.pushState({page:'jelajah',author:a},'');updateDynamicUI('jelajah',{author:a})}
+        const gT=e.target.closest('.genre-tag');if(gT){e.stopPropagation();const g=gT.dataset.genre;history.pushState({page:'jelajah',genre:g},'');updateDynamicUI('jelajah',{genre:g})}
+        
+        const cL=e.target.closest('.chapter-link');
+        if(cL){
+            e.preventDefault();
+            const nId=cL.dataset.novelId;
+            const cId=cL.dataset.chapterId;
+            cNId=nId; 
+            cCId=cId; 
+            
+            const n=allNovels.find(n=>n.id==nId);
+            const c=n.chapters.find(c=>c.id==cId); 
+            const isAdSupported = n.monetizationModel === 'ads';
+            
+            if(isAdSupported || c.monetization==='free'||unlockedChapterIds.includes(cId)){
+                history.pushState({page:'baca-bab',novelId:nId,chapterId:cId},'');
+                updateDynamicUI('baca-bab',{novelId:nId,chapterId:cId});
+            } else {
+                $('#unlock-chapter-modal-content').innerHTML=createUnlockModal(c,n);
+                $('#unlock-chapter-modal').classList.remove('hidden');
+                lucide.createIcons();
+            }
+        }
+
+        const uWC=e.target.closest('.unlock-with-coin-btn');if(uWC){const canUnlock=uWC.dataset.canUnlock==='true';const coinType=uWC.dataset.coinType;const novel=allNovels.find(n=>n.id==cNId);if(!canUnlock){$('#unlock-chapter-modal').classList.add('hidden');if(coinType==='gold'){showToast('Koin Emas tidak cukup. Silakan top up.');updateDynamicUI('beli-koin')}else{$('#coin-info-modal-content').innerHTML = createCoinInfoModal(novel.authorPhone); $('#coin-info-modal').classList.remove('hidden'); lucide.createIcons();}}else{const chapter=novel.chapters.find(c=>c.id==cCId); if(coinType==='gold'){currentUser.balance.gold-=10}else{currentUser.balance.silver[novel.authorPenName] = (currentUser.balance.silver[novel.authorPenName] || 0) - 10;} unlockedChapterIds.push(chapter.id); try { await updateDoc(doc(db, "users", currentUser.uid), { balance: currentUser.balance, unlockedChapters: unlockedChapterIds }); $('#unlock-chapter-modal').classList.add('hidden'); showToast(`Bab "${chapter.title}" berhasil dibuka!`); history.pushState({page:'baca-bab',novelId:cNId,chapterId:cCId},''); updateDynamicUI('baca-bab',{novelId:cNId,chapterId:cCId}); } catch(err) { console.error(err); showToast('Gagal membuka bab.'); if(coinType==='gold'){currentUser.balance.gold+=10}else{currentUser.balance.silver[novel.authorPenName]+=10;} unlockedChapterIds.pop(); } }}
+        const bgcr = e.target.closest('#buy-gold-coin-redirect'); if(bgcr){$('#coin-info-modal').classList.add('hidden');history.pushState({page:'beli-koin'},'', '#beli-koin');updateDynamicUI('beli-koin');} 
+        const wD=e.target.closest('#withdraw-btn');if(wD){const m=encodeURIComponent(`Halo Admin, saya ${currentUser.email}, ingin melakukan penarikan dana.`);window.open(`https://wa.me/6287745646067?text=${m}`,'_blank')} 
+        const rsB=e.target.closest('#reader-settings-btn');if(rsB){const m=$('#reader-settings-menu');if(m){m.remove()}else{$('#reader-toolbar').insertAdjacentHTML('beforeend',`<div id="reader-settings-menu" class="absolute top-full right-2 bg-white rounded-lg shadow-lg border mt-2 w-48">${createReaderSettingsMenu()}</div>`)}}
+        const bfrB=e.target.closest('#back-from-reader');if(bfrB){window.history.back()}
+        const df=e.target.closest('#decrease-font');if(df){if(readerSettings.fontSize>0)readerSettings.fontSize--;applyReaderSettings()}
+        const iF=e.target.closest('#increase-font');if(iF){if(readerSettings.fontSize<fontSizes.length-1)readerSettings.fontSize++;applyReaderSettings()}
+        const themeBtn = e.target.closest('[id^="theme-"]'); if(themeBtn){readerSettings.theme = themeBtn.id.split('-')[1]; applyReaderSettings();}
+        const tsb = e.target.closest('.topup-silver-btn'); if(tsb){const authorName = tsb.dataset.authorName; const author = dummyAuthors.find(a => a.name === authorName); if(author?.phone){const msg = encodeURIComponent(`Halo kak ${authorName}, saya ingin top up Koin Perak.`); window.open(`https.wa.me/${author.phone}?text=${msg}`,'_blank');}} 
+        const tgb = e.target.closest('#topup-gold-btn'); if(tgb){history.pushState({page:'beli-koin'},'', '#beli-koin'); updateDynamicUI('beli-koin');} 
+        const bsib = e.target.closest('#buy-silver-info-btn'); if(bsib){showToast('Pilih penulis dari halaman Saldo Koin.'); history.pushState({page:'saldo'},'', '#saldo'); updateDynamicUI('saldo');}
+        const openCommentBtn = e.target.closest('#open-comment-drawer-btn');
+        if(openCommentBtn) {
+            const novel = allNovels.find(n => n.id == cNId);
+            if (novel) {
+                const chapter = novel.chapters.find(c => c.id == cCId);
+                if (chapter) renderComments(chapter.comments);
+            }
+            $('#comment-drawer').classList.remove('hidden');
+            setTimeout(() => $('#comment-drawer-content').classList.remove('translate-y-full'), 10);
+        }
+        const closeCommentBtn = e.target.closest('#close-comment-drawer-btn');
+        if(closeCommentBtn || e.target.id === 'comment-drawer') {
+            $('#comment-drawer-content').classList.add('translate-y-full');
+            setTimeout(() => $('#comment-drawer').classList.add('hidden'), 300);
+        }
+    });
+    
+    $('body').addEventListener('input',e=>{
+        if(e.target.id==='monetize-toggle'){$('#monetize-options').classList.toggle('hidden',!e.target.checked)}
+        if(e.target.id==='ai-percentage'){$('#ai-percentage-label').textContent=`${e.target.value}% AI`}
+        if(e.target.id==='chapter-content'){const wC=e.target.value.trim().split(/\s+/).filter(Boolean).length;$('#word-count').textContent=`${wC}/1000 kata minimum`;$('#word-count').classList.toggle('text-green-600',wC>=1000)}
+        
+        if(e.target.id==='search-input'){
+            const q = e.target.value.toLowerCase().trim();
+            const paginationControls = $('#pagination-controls');
+            if (q.length > 0) {
+                paginationControls.style.display = 'none';
+                const searchResults = allNovels.filter(n => n.title.toLowerCase().includes(q) || (n.authorPenName && n.authorPenName.toLowerCase().includes(q)));
+                renderJelajahUI(searchResults);
+            } else {
+                paginationControls.style.display = 'flex';
+                fetchJelajahPage(1);
+            }
+        }
+    });
+
+    $('body').addEventListener('change', e => {
+        if (e.target.name === 'monetization-model') {
+            $('#ad-script-container')?.classList.toggle('hidden', e.target.value !== 'ads');
+        }
+    });
+
+    $('body').addEventListener('focusin', e => {
+        if (e.target.id === 'comment-input') {
+            setTimeout(() => $('#comment-drawer-content').scrollIntoView({ behavior: 'smooth', block: 'end' }), 300); 
+        }
+    });
+
+    $('body').addEventListener('submit', async e => {
+        e.preventDefault();
+
+        if(e.target.id === 'edit-novel-form') {
+            const updatedData = {
+                title: $('#edit-novel-title').value.trim(),
+                description: $('#edit-novel-synopsis').value.trim(),
+                tags: $('#edit-novel-tags').value.split(',').map(name => ({ name: name.trim() })).filter(tag => tag.name)
+            };
+            try {
+                await updateDoc(doc(db, "novels", cNId), updatedData);
+                const novelIndex = allNovels.findIndex(n => n.id === cNId);
+                if (novelIndex > -1) allNovels[novelIndex] = { ...allNovels[novelIndex], ...updatedData };
+                showToast('Detail novel berhasil diperbarui!');
+                window.history.back();
+            } catch (error) {
+                console.error("Gagal memperbarui novel:", error);
+                showToast('Gagal memperbarui detail novel.');
+            }
+        }
+
+        if(e.target.id === 'add-novel-form'){ 
+            const f=e.target; 
+            let coverUrl = f['novel-cover-url'].value.trim();
+            const title = f['novel-title'].value;
+            if (!coverUrl) coverUrl = `https://placehold.co/400x600/fecdd3/44403c?text=${encodeURIComponent(title.split(' ').slice(0, 2).join(' '))}`;
+            const monetizationModel = f['monetization-model'].value;
+            const newNovel={ 
+                title: title, 
+                author:currentUser.email, 
+                authorPenName: currentUser.penName, 
+                authorPhone:f['author-phone'].value, 
+                coverUrl: coverUrl,
+                description:f['novel-synopsis'].value, 
+                tags:f['novel-tags'].value.split(',').map(name=>({name:name.trim()})), 
+                status:f['novel-status'].value, 
+                chapters:[], 
+                createdAt: new Date(),
+                clickCount: 0,
+                monetizationModel: monetizationModel,
+                adScript: (monetizationModel === 'ads') ? f['novel-ad-script'].value.trim() : null
+            }; 
+
+            try { 
+                const docRef = await addDoc(collection(db, "novels"), newNovel); 
+                const newNovelForState = { id: docRef.id, ...newNovel, createdAt: { toDate: () => newNovel.createdAt } };
+                allNovels.unshift(newNovelForState);
+                f.reset(); 
+                showToast('Novel berhasil disimpan!'); 
+                updateDynamicUI('dashboard-penulis'); 
+                
+                try {
+                    await updateDoc(doc(db, "metadata", "novels"), { count: increment(1) });
+                    totalNovels++;
+                } catch (metaError) {
+                    console.error("Gagal memperbarui metadata, tapi novel sudah ditambahkan:", metaError);
+                }
+
+            } catch (error) { 
+                console.error("Gagal menambahkan dokumen novel: ", error); 
+                showToast('Gagal menyimpan novel.'); 
+            } 
+        }
+        
+        if(e.target.id==='edit-chapter-form'){ 
+            const action = e.submitter.dataset.action;
+            const novelId = $('#chapter-form-novel-id').value;
+            const novelToUpdate = allNovels.find(n => n.id == novelId); 
+            if(!novelToUpdate) { showToast("Error: Novel tidak ditemukan."); return; }
+            let monetization = novelToUpdate.monetizationModel === 'paid' ? (e.target.querySelector('#monetize-toggle')?.checked ? 'paid' : 'free') : 'free';
+            const content = $('#chapter-content').value;
+            const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
+            if (action === 'publish' && monetization === 'paid' && wordCount < 1000) {
+                showToast(`Gagal. Bab berbayar harus minimal 1000 kata. (Saat ini: ${wordCount} kata)`);
+                return;
+            }
+            const chapterData = { 
+                id: cCId || Date.now().toString(), 
+                title: $('#chapter-title').value, 
+                monetization: monetization, 
+                ai_percent: $('#ai-percentage').value, 
+                content: content,
+                comments: novelToUpdate.chapters?.find(c => c.id == cCId)?.comments || [],
+                status: action === 'publish' ? 'published' : 'draft'
+            }; 
+            let updatedChapters = cCId ? novelToUpdate.chapters.map(c => c.id == cCId ? chapterData : c) : [...(novelToUpdate.chapters || []), chapterData]; 
+            try { 
+                await updateDoc(doc(db, "novels", novelId), { chapters: updatedChapters }); 
+                novelToUpdate.chapters = updatedChapters; 
+                showToast(`Bab berhasil disimpan sebagai ${action === 'draft' ? 'draf' : 'publikasi'}!`); 
+                window.history.back(); 
+            } catch (error) { 
+                console.error("Error updating chapter: ", error); 
+                showToast("Gagal menyimpan bab."); 
+            } 
+        }
+        
+        if(e.target.id === 'give-silver-coin-form'){
+            const email = $('#reader-email').value;
+            const amount = parseInt($('#silver-amount').value, 10);
+            if (!email || !amount || amount <= 0) { showToast('Email dan jumlah koin harus valid.'); return; }
+            try {
+                const q = query(collection(db, "users"), where("email", "==", email));
+                const querySnapshot = await getDocs(q);
+                if (querySnapshot.empty) { showToast('Pengguna tidak ditemukan.'); return; }
+                const recipientDoc = querySnapshot.docs[0];
+                await updateDoc(doc(db, "users", recipientDoc.id), {
+                    [`balance.silver.${currentUser.penName}`]: increment(amount)
+                });
+                showToast(`${amount} koin perak berhasil dikirim!`);
+                e.target.reset();
+                updateDynamicUI('dashboard-penulis');
+            } catch (error) {
+                console.error("Gagal mengirim koin perak:", error);
+                showToast('Gagal mengirim koin perak.');
+            }
+        }
+        
+        if(e.target.id === 'comment-form'){ 
+            const input = $('#comment-input'); 
+            const text = input.value.trim(); 
+            if(text && cNId && cCId){ 
+                const newComment = {
+                    user: currentUser.penName || currentUser.email.split('@')[0],
+                    text: text,
+                    createdAt: new Date()
+                };
+                const novelRef = doc(db, "novels", cNId);
+
+                try {
+                    const novelDoc = await getDoc(novelRef);
+                    if (!novelDoc.exists()) throw new Error("Novel tidak ditemukan");
+                    
+                    const novelData = novelDoc.data();
+                    const chapters = novelData.chapters || [];
+                    const chapterIndex = chapters.findIndex(c => c.id == cCId);
+                    if (chapterIndex === -1) throw new Error("Bab tidak ditemukan");
+                    
+                    if (!chapters[chapterIndex].comments) {
+                        chapters[chapterIndex].comments = [];
+                    }
+                    
+                    chapters[chapterIndex].comments.push(newComment);
+                    
+                    await updateDoc(novelRef, { chapters: chapters });
+                    
+                    const localNovel = allNovels.find(n => n.id == cNId);
+                    if (localNovel) localNovel.chapters = chapters;
+                    
+                    renderComments(chapters[chapterIndex].comments);
+                    input.value = '';
+                } catch(err){ 
+                    console.error("Gagal mengirim komentar:", err); 
+                    showToast("Gagal mengirim komentar."); 
+                } 
+            } 
+        }
+    });
+    
+    window.addEventListener('popstate',e=>{const p=e.state?.page||'beranda';updateDynamicUI(p,e.state)});
+}
         
         async function refreshAuthorProfiles() {
             const authorEmails = [...new Set(allNovels.map(n => n.author))];
