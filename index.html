@@ -725,11 +725,36 @@
             $('#profile-avatar').addEventListener('click',()=>$('#profile-options').classList.toggle('hidden'));
             $('#close-modal-btn').addEventListener('click', async () => { try { const userRef = doc(db, "users", currentUser.uid); await updateDoc(userRef, { role: 'penulis' }); currentUser.role = 'penulis'; showToast('Selamat, Anda sekarang adalah penulis!'); updateProfileView(); } catch (e) { showToast('Gagal memperbarui role.'); console.error(e); } finally {$('#writer-signup-modal').classList.add('hidden');}});
             
-            $('#add-novel-btn').addEventListener('click',()=>updateDynamicUI('tambah-novel'));
-            $('#buy-coin-button').addEventListener('click',(e)=>{e.preventDefault();updateDynamicUI('beli-koin');});
-            $('#saldo-koin-button').addEventListener('click', (e) => {e.preventDefault(); updateDynamicUI('saldo');});
-            $('#main-header').addEventListener('click',e=>{const sB=e.target.closest('#search-btn');if(sB)updateDynamicUI('jelajah'); const nB=e.target.closest('#notification-btn'); if(nB)updateDynamicUI('notifikasi')});
-            
+            $('#add-novel-btn').addEventListener('click', () => {
+    history.pushState({ page: 'tambah-novel' }, '', '#tambah-novel');
+    updateDynamicUI('tambah-novel');
+});
+
+$('#buy-coin-button').addEventListener('click', (e) => {
+    e.preventDefault();
+    history.pushState({ page: 'beli-koin' }, '', '#beli-koin');
+    updateDynamicUI('beli-koin');
+});
+
+$('#saldo-koin-button').addEventListener('click', (e) => {
+    e.preventDefault();
+    history.pushState({ page: 'saldo' }, '', '#saldo');
+    updateDynamicUI('saldo');
+});
+
+$('#main-header').addEventListener('click', e => {
+    const sB = e.target.closest('#search-btn');
+    if (sB) {
+        history.pushState({ page: 'jelajah' }, '', '#jelajah');
+        updateDynamicUI('jelajah');
+    }
+
+    const nB = e.target.closest('#notification-btn');
+    if (nB) {
+        history.pushState({ page: 'notifikasi' }, '', '#notifikasi');
+        updateDynamicUI('notifikasi');
+    }
+});
             $('#pagination-controls').addEventListener('click', e => {
                 const button = e.target.closest('button');
                 if (!button) return;
@@ -1259,3 +1284,4 @@
     </script>
 </body>
 </html>
+
